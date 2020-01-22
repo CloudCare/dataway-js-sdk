@@ -1,0 +1,63 @@
+<html>
+  <body>
+    <h1>Dataway JS SDK Example</h1>
+    <p>Please open the develop tool to checkout the console output.</p>
+  </body>
+  <script type="text/javascript" src="dataway.min.js"></script>
+  <script>
+    function printSep(title) {
+      var line = '';
+      for (var i = 0; i < 10; i++) line += '-';
+
+      console.log(line + ' [' + title + '] ' + line);
+    }
+    function printResp(title, ret) {
+      var node = document.createElement('div');
+
+      var reqStatus = ret.statusCode >= 200 && ret.statusCode < 400
+                    ? 'OK' : 'FAILED';
+      node.innerHTML = '<code>' + title + '...' + reqStatus + '</code>';
+
+      document.getElementsByTagName('body')[0].append(node);
+    }
+
+    var dw = new dataway.Dataway({debug: true});
+
+    var points = [
+      {
+        measurement: 'M1',
+        tags       : {'T1': 'X', 'T2': 'Y', 'T3': ''},
+        fields     : {'F1': 'A', 'F2': dataway.asInt(42), 'F3': 4.2, 'F4': true, 'F5': false, 'F6': '', 'F7': null},
+        timestamp  : '1577808000000000001',
+      },
+      {
+        measurement: 'M1',
+        tags       : {'T1': 'X'},
+        fields     : {'F1': 'A'},
+        timestamp  : 1577808001,
+      },
+      {
+        measurement: 'M1',
+        tags       : null,
+        fields     : {'F1': 'A'},
+        timestamp  : 1577808002,
+      },
+      {
+        measurement: 'M1',
+        fields     : {'F1': 'A'},
+      },
+    ];
+
+    // 1
+    printSep('Dataway.writePoint()')
+    dw.writePoint(points[0], function(err, ret) {
+      printResp('Dataway.writePoint()', ret);
+
+      // 2
+      printSep('Dataway.writePoints()')
+      dw.writePoints(points, function(err, ret) {
+        printResp('Dataway.writePoints()', ret);
+      });
+    });
+  </script>
+</html>
