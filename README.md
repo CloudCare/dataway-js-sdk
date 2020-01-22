@@ -7,7 +7,7 @@ Javascript 版 DataFlux Dataway SDK。
 ## 特性
 
 1. 兼容 Node.js 和 浏览器，在以下环境中通过测试：
-    - Node `v0.10.48` / `0.12.18` / `v4.9.1` /`v6.11.5` / `v8.16.0` / `v10.15.3` / `v12.12.0`
+    - Node `v0.10.48` / `v0.12.18` / `v4.9.1` /`v6.11.5` / `v8.16.0` / `v10.15.3` / `v12.12.0`
     - Chrome `79.0.3945.117 (Mac x64)`
     - Safari `13.0.4 (Mac)`
     - Firefox `72.0.2 (Mac x64)`
@@ -20,7 +20,7 @@ Javascript 版 DataFlux Dataway SDK。
 
 3. 关键事件（`Keyevent`）/流程行为（`FLow`）支持。
 
-4. Dataway 认证支持。（见`TODO`）
+4. Dataway 认证支持。
 
 5. HTTP/HTTPS 支持。
 

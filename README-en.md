@@ -7,7 +7,7 @@ A DataFlux Dataway SDK for Javascript.
 ## Feature
 
 1. Compatible with Node.js and Browser. Tested in following environments:
-    - Node `v0.10.48` / `0.12.18` / `v4.9.1` /`v6.11.5` / `v8.16.0` / `v10.15.3` / `v12.12.0`
+    - Node `v0.10.48` / `v0.12.18` / `v4.9.1` /`v6.11.5` / `v8.16.0` / `v10.15.3` / `v12.12.0`
     - Chrome `79.0.3945.117 (Mac x64)`
     - Safari `13.0.4 (Mac)`
     - Firefox `72.0.2 (Mac x64)`
@@ -20,7 +20,7 @@ A DataFlux Dataway SDK for Javascript.
 
 3. `Keyevent`/`FLow` Support.
 
-4. Dataway Authorization support. (See `TODO`)
+4. Dataway Authorization support.
 
 5. HTTP/HTTPS support.
 
