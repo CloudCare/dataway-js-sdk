@@ -124,13 +124,14 @@ Finally, the AccessKey and SecretKey are the `accessKey` and `secretKey` in the 
 
 Write one point
 
-|     Parameter      |   Type   | Required |   Default Value   |                                                 Description                                                  |
-|--------------------|----------|----------|-------------------|--------------------------------------------------------------------------------------------------------------|
-| `data`             | `JSON`   | Required |                   | data point                                                                                                   |
-| `data.measurement` | `String` | Required |                   | measurement                                                                                                  |
-| `data.tags`        | `JSON`   | Optional | `null`            | tags. Both key and value should be a string                                                                  |
-| `data.fields`      | `JSON`   | Optional | `null`            | fields. Key should be a string, value should be a string/integer/float/boolean value                         |
-| `data.timestamp`   | `Number` | Optional | Current Timestamp | timestamp, Support second/millisecond/microsecond/nanosecond. SDK will detect and auto convert to nanosecond |
+|     Parameter      |    Type    | Required |   Default Value   |                                                 Description                                                  |
+|--------------------|------------|----------|-------------------|--------------------------------------------------------------------------------------------------------------|
+| `data`             | `JSON`     | Required |                   | data point                                                                                                   |
+| `data.measurement` | `String`   | Required |                   | measurement                                                                                                  |
+| `data.tags`        | `JSON`     | Optional | `undefined`       | tags. Both key and value should be a string                                                                  |
+| `data.fields`      | `JSON`     | Optional | `undefined`       | fields. Key should be a string, value should be a string/integer/float/boolean value                         |
+| `data.timestamp`   | `Number`   | Optional | Current Timestamp | timestamp, Support second/millisecond/microsecond/nanosecond. SDK will detect and auto convert to nanosecond |
+| `callback`         | `Function` | Optional | `undefined`       | Callback function `function(err, ret)`                                                                       |
 
 
 
@@ -138,18 +139,19 @@ Write one point
 
 
 
-###### *method* `Dataway.writePoints(data)`
+###### *method* `Dataway.writePoints(points)`
 
 Write many points
 
-|       Parameter       |   Type   | Required |   Default Value   |                                                 Description                                                  |
-|-----------------------|----------|----------|-------------------|--------------------------------------------------------------------------------------------------------------|
-| `data`                | `Array`  | Required |                   | data point list                                                                                              |
-| `data[#]`             | `JSON`   | Required |                   | data point data                                                                                              |
-| `data[#].measurement` | `String` | Required |                   | measurement                                                                                                  |
-| `data[#].tags`        | `JSON`   | Optional | `null`            | tags. Both key and value should be a string                                                                  |
-| `data[#].fields`      | `JSON`   | Optional | `null`            | fields. Key should be a string, value should be a string/integer/float/boolean value                         |
-| `data[#].timestamp`   | `Number` | Optional | Current Timestamp | timestamp, Support second/millisecond/microsecond/nanosecond. SDK will detect and auto convert to nanosecond |
+|        Parameter        |    Type    | Required |   Default Value   |                                                 Description                                                  |
+|-------------------------|------------|----------|-------------------|--------------------------------------------------------------------------------------------------------------|
+| `points`                | `Array`    | Required |                   | data point list                                                                                              |
+| `points[#]`             | `JSON`     | Required |                   | data point data                                                                                              |
+| `points[#].measurement` | `String`   | Required |                   | measurement                                                                                                  |
+| `points[#].tags`        | `JSON`     | Optional | `undefined`       | tags. Both key and value should be a string                                                                  |
+| `points[#].fields`      | `JSON`     | Optional | `undefined`       | fields. Key should be a string, value should be a string/integer/float/boolean value                         |
+| `points[#].timestamp`   | `Number`   | Optional | Current Timestamp | timestamp, Support second/millisecond/microsecond/nanosecond. SDK will detect and auto convert to nanosecond |
+| `callback`              | `Function` | Optional | `undefined`       | Callback function `function(err, ret)`                                                                       |
 
 
 
@@ -161,15 +163,16 @@ Write many points
 
 Write a key event
 
-|    Parameter     |   Type   | Required | Default Value |                                                    Description                                                     |
-|------------------|----------|----------|---------------|--------------------------------------------------------------------------------------------------------------------|
-| `data`           | `JSON`   | Required |               | keyevent data                                                                                                      |
-| `data.title`     | `String` | Required |               | title                                                                                                              |
-| `data.timestamp` | `Number` | Required |               | event timestamp, Support second/millisecond/microsecond/nanosecond. SDK will detect and auto convert to nanosecond |
-| `data.des`       | `String` | Optional |               | description                                                                                                        |
-| `data.link`      | `String` | Optional |               | related external link, e.g. `"http://some-domain/some-path"`                                                       |
-| `data.source`    | `String` | Optional |               | source                                                                                                             |
-| `data.tags`      | `JSON`   | Optional | `null`        | extra tags. Both key and value should be a string                                                                  |
+|    Parameter     |    Type    | Required | Default Value |                                                    Description                                                     |
+|------------------|------------|----------|---------------|--------------------------------------------------------------------------------------------------------------------|
+| `data`           | `JSON`     | Required |               | keyevent data                                                                                                      |
+| `data.title`     | `String`   | Required |               | title                                                                                                              |
+| `data.timestamp` | `Number`   | Required |               | event timestamp, Support second/millisecond/microsecond/nanosecond. SDK will detect and auto convert to nanosecond |
+| `data.des`       | `String`   | Optional | `undefined`   | description                                                                                                        |
+| `data.link`      | `String`   | Optional | `undefined`   | related external link, e.g. `"http://some-domain/some-path"`                                                       |
+| `data.source`    | `String`   | Optional | `undefined`   | source                                                                                                             |
+| `data.tags`      | `JSON`     | Optional | `undefined`   | extra tags. Both key and value should be a string                                                                  |
+| `callback`       | `Function` | Optional | `undefined`   | Callback function `function(err, ret)`                                                                             |
 
 
 
@@ -177,20 +180,21 @@ Write a key event
 
 
 
-###### *method* `Dataway.writeKeyevents(data)`
+###### *method* `Dataway.writeKeyevents(keyevents)`
 
 Write many key events
 
-|      Parameter      |   Type   | Required | Default Value |                                                    Description                                                     |
-|---------------------|----------|----------|---------------|--------------------------------------------------------------------------------------------------------------------|
-| `data`              | `Array`  | Required |               | key event list                                                                                                     |
-| `data[#]`           | `JSON`   | Required |               | key event data                                                                                                     |
-| `data[#].title`     | `String` | Required |               | title                                                                                                              |
-| `data[#].timestamp` | `Number` | Required |               | event timestamp, Support second/millisecond/microsecond/nanosecond. SDK will detect and auto convert to nanosecond |
-| `data[#].des`       | `String` | Optional |               | description                                                                                                        |
-| `data[#].link`      | `String` | Optional |               | related external link, e.g. `"http://some-domain/some-path"`                                                       |
-| `data[#].source`    | `String` | Optional |               | source                                                                                                             |
-| `data[#].tags`      | `JSON`   | Optional | `null`        | extra tags. Both key and value should be a string                                                                  |
+|        Parameter         |    Type    | Required | Default Value |                                                    Description                                                     |
+|--------------------------|------------|----------|---------------|--------------------------------------------------------------------------------------------------------------------|
+| `keyevents`              | `Array`    | Required |               | key event list                                                                                                     |
+| `keyevents[#]`           | `JSON`     | Required |               | key event data                                                                                                     |
+| `keyevents[#].title`     | `String`   | Required |               | title                                                                                                              |
+| `keyevents[#].timestamp` | `Number`   | Required |               | event timestamp, Support second/millisecond/microsecond/nanosecond. SDK will detect and auto convert to nanosecond |
+| `keyevents[#].des`       | `String`   | Optional | `undefined`   | description                                                                                                        |
+| `keyevents[#].link`      | `String`   | Optional | `undefined`   | related external link, e.g. `"http://some-domain/some-path"`                                                       |
+| `keyevents[#].source`    | `String`   | Optional | `undefined`   | source                                                                                                             |
+| `keyevents[#].tags`      | `JSON`     | Optional | `undefined`   | extra tags. Both key and value should be a string                                                                  |
+| `callback`               | `Function` | Optional | `undefined`   | Callback function `function(err, ret)`                                                                             |
 
 
 
@@ -202,18 +206,19 @@ Write many key events
 
 Write a flow
 
-|     Parameter     |    Type   |   Required  | Default Value |                                                 Description                                                  |
-|-------------------|-----------|-------------|---------------|--------------------------------------------------------------------------------------------------------------|
-| `data`            | `JSON`    | Required    |               | flow data                                                                                                    |
-| `data.traceId`    | `String`  | Required    |               | flow trace ID                                                                                                |
-| `data.name`       | `String`  | Required    |               | node name                                                                                                    |
-| `data.type`       | `String`  | Required    |               | node type                                                                                                    |
-| `data.timestamp`  | `Number`  | Required    |               | timestamp, Support second/millisecond/microsecond/nanosecond. SDK will detect and auto convert to nanosecond |
-| `data.duration`   | `Integer` | Alternative |               | duration of the flow on the node (second)                                                                    |
-| `data.durationMs` | `Integer` | Alternative |               | duration of the flow on the node (millisecond)                                                               |
-| `data.parent`     | `String`  | Optional    | `null`        | previous node name. The first node do not have one                                                           |
-| `data.tags`       | `JSON`    | Optional    | `null`        | extra tags. Both key and value should be a string                                                            |
-| `data.fields`     | `JSON`    | Optional    | `null`        | extra fields. Key should be a string, value should be a string/integer/float/boolean value                   |
+|     Parameter     |    Type    |   Required  | Default Value |                                                 Description                                                  |
+|-------------------|------------|-------------|---------------|--------------------------------------------------------------------------------------------------------------|
+| `data`            | `JSON`     | Required    |               | flow data                                                                                                    |
+| `data.app`        | `String`   | Required    |               | app name                                                                                                     |
+| `data.traceId`    | `String`   | Required    |               | flow trace ID                                                                                                |
+| `data.name`       | `String`   | Required    |               | node name                                                                                                    |
+| `data.timestamp`  | `Number`   | Required    |               | timestamp, Support second/millisecond/microsecond/nanosecond. SDK will detect and auto convert to nanosecond |
+| `data.duration`   | `Integer`  | Alternative |               | duration of the flow on the node (second)                                                                    |
+| `data.durationMs` | `Integer`  | Alternative |               | duration of the flow on the node (millisecond)                                                               |
+| `data.parent`     | `String`   | Optional    | `undefined`   | previous node name. The first node do not have one                                                           |
+| `data.tags`       | `JSON`     | Optional    | `undefined`   | extra tags. Both key and value should be a string                                                            |
+| `data.fields`     | `JSON`     | Optional    | `undefined`   | extra fields. Key should be a string, value should be a string/integer/float/boolean value                   |
+| `callback`        | `Function` | Optional    | `undefined`   | Callback function `function(err, ret)`                                                                       |
 
 Either `data.duration` or `data.durationMs` should be spcified.
 
@@ -223,23 +228,24 @@ Either `data.duration` or `data.durationMs` should be spcified.
 
 
 
-###### *method* `Dataway.writeFlows(data)`
+###### *method* `Dataway.writeFlows(flows)`
 
 Write many flows
 
-|      Parameter       |    Type   |   Required  | Default Value |                                                 Description                                                  |
-|----------------------|-----------|-------------|---------------|--------------------------------------------------------------------------------------------------------------|
-| `data`               | `Array`   | Required    |               | flow list                                                                                                    |
-| `data[#]`            | `JSON`    | Required    |               | flow data                                                                                                    |
-| `data[#].traceId`    | `String`  | Required    |               | flow trace ID                                                                                                |
-| `data[#].name`       | `String`  | Required    |               | node name                                                                                                    |
-| `data[#].type`       | `String`  | Required    |               | node type                                                                                                    |
-| `data[#].timestamp`  | `Number`  | Required    |               | timestamp, Support second/millisecond/microsecond/nanosecond. SDK will detect and auto convert to nanosecond |
-| `data[#].duration`   | `Integer` | Alternative |               | duration of the flow on the node (second)                                                                    |
-| `data[#].durationMs` | `Integer` | Alternative |               | duration of the flow on the node (millisecond)                                                               |
-| `data[#].parent`     | `String`  | Optional    | `null`        | previous node name. The first node do not have one                                                           |
-| `data[#].tags`       | `JSON`    | Optional    | `null`        | extra tags. Both key and value should be a string                                                            |
-| `data[#].fields`     | `JSON`    | Optional    | `null`        | extra fields. Key should be a string, value should be a string/integer/float/boolean value                   |
+|       Parameter       |    Type    |   Required  | Default Value |                                                 Description                                                  |
+|-----------------------|------------|-------------|---------------|--------------------------------------------------------------------------------------------------------------|
+| `flows`               | `Array`    | Required    |               | flow list                                                                                                    |
+| `flows[#]`            | `JSON`     | Required    |               | flow data                                                                                                    |
+| `flows[#].app`        | `String`   | Required    |               | app name                                                                                                     |
+| `flows[#].traceId`    | `String`   | Required    |               | flow trace ID                                                                                                |
+| `flows[#].name`       | `String`   | Required    |               | node name                                                                                                    |
+| `flows[#].timestamp`  | `Number`   | Required    |               | timestamp, Support second/millisecond/microsecond/nanosecond. SDK will detect and auto convert to nanosecond |
+| `flows[#].duration`   | `Integer`  | Alternative |               | duration of the flow on the node (second)                                                                    |
+| `flows[#].durationMs` | `Integer`  | Alternative |               | duration of the flow on the node (millisecond)                                                               |
+| `flows[#].parent`     | `String`   | Optional    | `undefined`   | previous node name. The first node do not have one                                                           |
+| `flows[#].tags`       | `JSON`     | Optional    | `undefined`   | extra tags. Both key and value should be a string                                                            |
+| `flows[#].fields`     | `JSON`     | Optional    | `undefined`   | extra fields. Key should be a string, value should be a string/integer/float/boolean value                   |
+| `callback`            | `Function` | Optional    | `undefined`   | Callback function `function(err, ret)`                                                                       |
 
 ## Announcement
 

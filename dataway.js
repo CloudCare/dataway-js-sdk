@@ -1464,7 +1464,7 @@
   }
 
   function IntVal(i) {
-    this.val = i;
+    this.val = parseInt(i);
   }
   function asInt(i) {
     return new IntVal(i);
@@ -1554,16 +1554,22 @@
     }
 
     var fields = point.fields;
-    if (fields && !isObject(fields)) {
-      throw new Error('`fields` should be an Object');
+    if (fields) {
+      if (!isObject(fields)) {
+        throw new Error('`fields` should be an Object');
+      }
     }
 
     var timestamp = point.timestamp;
-    if (timestamp && !isNumber(timestamp) && !isString(timestamp)) {
-      throw new Error('`timestamp` should be a Number or String');
+    if (timestamp) {
+      if (!isNumber(timestamp) && !isString(timestamp)) {
+        throw new Error('`timestamp` should be a Number or String');
+      }
     }
 
-    if (!timestamp) timestamp = Date.now();
+    if (!timestamp) {
+      timestamp = Date.now();
+    }
 
     timestamp = this._toNsString(timestamp);
 
@@ -1585,11 +1591,13 @@
     var tags = keyevent.tags || {};
 
     var source = keyevent.source;
-    if (source && !isString(source)) {
-      throw new Error('`source` should be a String');
+    if (source) {
+      if (!isString(source)) {
+        throw new Error('`source` should be a String');
+      } else {
+        tags.$source = source;
+      }
     }
-
-    tags.$source = source;
 
     var fields = {};
 
@@ -1602,10 +1610,12 @@
     }
 
     var des = keyevent.des;
-    if (des && !isString(des)) {
-      throw new Error('`des` should be a String');
-    } else {
-      fields.$des = des;
+    if (des) {
+      if (!isString(des)) {
+        throw new Error('`des` should be a String');
+      } else {
+        fields.$des = des;
+      }
     }
 
     var link = keyevent.link;
@@ -1613,8 +1623,7 @@
       if (!isString(link)) {
         throw new Error('`link` should be a String');
 
-      } else if (link.toLowerCase().indexOf('http://') < 0
-            || link.toLowerCase().indexOf('https://') < 0
+      } else if (link.toLowerCase().indexOf('http://') < 0 && link.toLowerCase().indexOf('https://') < 0
             || link.slice(-3) === '://') {
         throw new Error('`link` should be a valid URL with protocol');
 
@@ -1654,31 +1663,34 @@
       tags.$name = name;
     }
 
-    var type = flow.type;
-    if (!isString(type)) {
-      throw new Error('`type` should be a String');
-    } else {
-      tags.$type = type;
-    }
-
     var parent = flow.parent;
-    if (parent && !isString(parent)) {
-      throw new Error('`parent` should be a String');
-    } else {
-      tags.$parent = parent;
+    if (parent) {
+      if (!isString(parent)) {
+        throw new Error('`parent` should be a String');
+      } else {
+        tags.$parent = parent;
+      }
     }
 
     // Check Fields
     var fields = flow.fields || {};
 
-    var durationMs = flow.durationMs
-    if (durationMs && !isInteger(durationMs)) {
-      throw new Error('`durationMs` should be a Integer');
+    var durationMs = null;
+    if (flow.durationMs) {
+      if (flow.durationMs instanceof IntVal) {
+        durationMs = flow.durationMs.val;
+      } else {
+        throw new Error('`durationMs` should be an instance of dataway.IntVal');
+      }
     }
 
-    var duration = flow.duration
-    if (duration && !isInteger(duration)) {
-      throw new Error('`duration` should be a Integer');
+    var duration = null;
+    if (flow.duration) {
+      if (flow.duration instanceof IntVal) {
+        duration = flow.duration.val;
+      } else {
+        throw new Error('`duration` should be an instance of dataway.IntVal');
+      }
     }
 
     // to ms
@@ -1690,8 +1702,10 @@
       throw new Error('`duration` or `durationMs` is missing');
     }
 
+    fields.$duration = asInt(durationMs || duration);
+
     var point = {
-        measurement: '$flow',
+        measurement: '$flow_' + flow.app,
         tags       : tags,
         fields     : fields,
         timestamp  : flow.timestamp,
@@ -1750,11 +1764,7 @@
             v = strf('{0}i', v.val);
 
           } else {
-            if (isInteger(v)) {
-              v = strf('{0}.0', v);
-            } else {
-              v = strf('{0}', v);
-            }
+            v = strf('{0}', v);
           }
 
           fieldSetList.push(strf('{0}={1}', k, v));
@@ -1933,15 +1943,15 @@
     this._sendPoints(preparedPoint, callback);
   };
 
-  Dataway.prototype.writePoints = function(data, callback) {
+  Dataway.prototype.writePoints = function(points, callback) {
     var self = this;
 
-    if (!Array.isArray(data)) {
-      throw new Error('`data` should be an array');
+    if (!Array.isArray(points)) {
+      throw new Error('`points` should be an array');
     }
 
     var preparedPoints = [];
-    data.forEach(function(d) {
+    points.forEach(function(d) {
       preparedPoints.push(self._preparePoint(d));
     });
 
@@ -1961,15 +1971,15 @@
     this._sendPoints(preparedPoint, callback);
   };
 
-  Dataway.prototype.writeKeyevents = function(data, callback) {
+  Dataway.prototype.writeKeyevents = function(keyevents, callback) {
     var self = this;
 
-    if (!Array.isArray(data)) {
-      throw new Error('`data` should be an array');
+    if (!Array.isArray(keyevents)) {
+      throw new Error('`keyevents` should be an array');
     }
 
     var preparedPoints = []
-    data.forEach(function(d) {
+    keyevents.forEach(function(d) {
       preparedPoints.push(self._prepareKeyevent(d));
     });
 
@@ -1978,9 +1988,9 @@
 
   Dataway.prototype.writeFlow = function(data, callback) {
     var flow = {
+        app       : data.app,
         traceId   : data.traceId,
         name      : data.name,
-        type      : data.type,
         duration  : data.duration,
         durationMs: data.durationMs,
         parent    : data.parent,
@@ -1992,15 +2002,15 @@
     this._sendPoints(preparedPoint, callback);
   };
 
-  Dataway.prototype.writeFlows = function(data, callback) {
+  Dataway.prototype.writeFlows = function(flows, callback) {
     var self = this;
 
-    if (!Array.isArray(data)) {
-      throw new Error('`data` should be an array');
+    if (!Array.isArray(flows)) {
+      throw new Error('`flows` should be an array');
     }
 
     var preparedPoints = [];
-    data.forEach(function(d) {
+    flows.forEach(function(d) {
       preparedPoints.push(self._prepareFlow(d));
     })
 
