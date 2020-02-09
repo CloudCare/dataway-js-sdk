@@ -1495,15 +1495,20 @@
     if (options.url) {
       var parsedURL = new URL(options.url);
 
-      this.host = parsedURL.hostname;
-      if (parsedURL.port) {
-        this.port = parseInt(parsedURL.port);
-      }
-
       this.protocol = parsedURL.protocol.replace(/\:$/g, '');
 
       if (parsedURL.pathname) {
         this.path = parsedURL.pathname;
+      }
+      if (parsedURL.search) {
+        this.path += parsedURL.search;
+      }
+
+      this.host = parsedURL.hostname;
+      if (parsedURL.port) {
+        this.port = parseInt(parsedURL.port);
+      } else {
+        this.port = this.protocol === 'https' ? 443 : 80;
       }
     }
   };
