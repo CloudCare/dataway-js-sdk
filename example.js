@@ -7,7 +7,13 @@ function printSep(title) {
   console.log(line + ' [' + title + '] ' + line);
 }
 
-var dw = new dataway.Dataway({debug: true});
+var dw = new dataway.Dataway({
+  debug   : true,
+  protocol: 'https',
+  host    : 'openway.dataflux.cn',
+  port    : 443,
+  token   : 'YOUR_DATAWAY_TOKEN'
+});
 
 var points = [
   {

@@ -48,7 +48,9 @@ Javascript 版 DataFlux Dataway SDK。
 ```javascript
 var dataway = require('./dataway');
 
-var dw = new dataway.Dataway({debug: true});
+var dw = new dataway.Dataway({
+  url: 'http://localhost:9528/v1/write/metrics?token=xxxxxx',
+});
 
 // Write a point
 dw.writePoint({
@@ -81,22 +83,22 @@ dw.writePoints([
 
 Dataway 类
 
-|    `options`参数字段    |        类型       | 是否必须 |          默认值          |                               说明                               |
-|-------------------------|-------------------|----------|--------------------------|------------------------------------------------------------------|
-| `url`                   | `String`          | 可选     | `null`                   | Dataway 完整地址，如：`"http://localhost:9528/v1/write/metrics"` |
-| `host`                  | `String`          | 可选     | `"localhost"`            | Dataway 主机地址                                                 |
-| `port`                  | `Integer`         | 可选     | `9528`                   | Dataway 主机端口                                                 |
-| `protocol`              | `String`          | 可选     | `"http"`                 | Dataway 访问协议。`"http"`/`"https"`                             |
-| `path`                  | `String`          | 可选     | `"/v1/write/metrics"`    | Dataway 数据上报路径                                             |
-| `datakitUUID`           | `String`          | 可选     | `"dataway-js-sdk-nodep"` | 数据上报采集器名称                                               |
-| `accessKey`/`secretKey` | `String`/`String` | 可选     | `null`/`null`            | Dataway 认证用 AccessKey 和 SecretKey                            |
-| `debug`                 | `Boolean`         | 可选     | `False`                  | 是否打印详细调试信息                                             |
+|    `options`参数字段    |        类型       | 是否必须 |        默认值         |                                      说明                                     |
+|-------------------------|-------------------|----------|-----------------------|-------------------------------------------------------------------------------|
+| `url`                   | `String`          | 可选     | `null`                | Dataway 完整地址，如：`"http://localhost:9528/v1/write/metrics?token=xxxxxx"` |
+| `host`                  | `String`          | 可选     | `"localhost"`         | Dataway 主机地址                                                              |
+| `port`                  | `Integer`         | 可选     | `9528`                | Dataway 主机端口                                                              |
+| `protocol`              | `String`          | 可选     | `"http"`              | Dataway 访问协议。`"http"`/`"https"`                                          |
+| `path`                  | `String`          | 可选     | `"/v1/write/metrics"` | Dataway 数据上报路径                                                          |
+| `token`                 | `String`          | 可选     | `null`                | DataFlux 工作空间上报Token                                                    |
+| `accessKey`/`secretKey` | `String`/`String` | 可选     | `null`/`null`         | Dataway 认证用 AccessKey 和 SecretKey                                         |
+| `debug`                 | `Boolean`         | 可选     | `False`               | 是否打印详细调试信息                                                          |
 
 以下两种初始化方式等价：
-- `Dataway({ url: "http://localhost:9528/v1/write/metrics" })`
-- `Dataway({ host: "localhost", port: "9528", protocol: "http", path: "/v1/write/metrics" })`
+- `Dataway({ url: "http://localhost:9528/v1/write/metrics?token=xxxxxx" })`
+- `Dataway({ host: "localhost", port: "9528", protocol: "http", path: "/v1/write/metrics", token: 'xxxxxx' })`
 
-`datakitUUID`参数尽可能填写上报数据的业务系统名称，方便在 DataFlux 中查询
+`token`可以在`url`中作为参数出现，或者通过`token`传递。
 
 `accessKey`/`secretKey` 只有在 Dataway 开启认证后才需要填写。Dataway 开启认证方式如下：
 

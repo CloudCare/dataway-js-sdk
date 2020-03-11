@@ -47,7 +47,9 @@ See [example.js](example.js) or [example.html](example.html)
 ```javascript
 var dataway = require('./dataway');
 
-var dw = new dataway.Dataway({debug: true});
+var dw = new dataway.Dataway({
+  url: 'http://localhost:9528/v1/write/metrics?token=xxxxxx',
+});
 
 // Write a point
 dw.writePoint({
@@ -80,22 +82,22 @@ dw.writePoints([
 
 Dataway class
 
-|   Fields of `options`   |        Type       | Required |      Default Value       |                               Description                                |
-|-------------------------|-------------------|----------|--------------------------|--------------------------------------------------------------------------|
-| `url`                   | `String`          | Optional | `null`                   | Dataway full access URL, e.g. `"http://localhost:9528/v1/write/metrics"` |
-| `host`                  | `String`          | Optional | `"localhost"`            | Dataway host                                                             |
-| `port`                  | `Integer`         | Optional | `9528`                   | Dataway port                                                             |
-| `protocol`              | `String`          | Optional | `"http"`                 | Dataway protocol. `"http"`/`"https"`                                     |
-| `path`                  | `String`          | Optional | `"/v1/write/metrics"`    | Dataway report path                                                      |
-| `datakitUUID`           | `String`          | Optional | `"dataway-js-sdk-nodep"` | Datakit name                                                             |
-| `accessKey`/`secretKey` | `String`/`String` | Optional | `null`/`null`            | Dataway AccessKey and SecretKey for authorization                        |
-| `debug`                 | `Boolean`         | Optional | `false`                  | Print detailed debug info or not                                         |
+|   Fields of `options`   |        Type       | Required |     Default Value     |                                      Description                                      |
+|-------------------------|-------------------|----------|-----------------------|---------------------------------------------------------------------------------------|
+| `url`                   | `String`          | Optional | `null`                | Dataway full access URL, e.g. `"http://localhost:9528/v1/write/metrics?token=xxxxxx"` |
+| `host`                  | `String`          | Optional | `"localhost"`         | Dataway host                                                                          |
+| `port`                  | `Integer`         | Optional | `9528`                | Dataway port                                                                          |
+| `protocol`              | `String`          | Optional | `"http"`              | Dataway protocol. `"http"`/`"https"`                                                  |
+| `path`                  | `String`          | Optional | `"/v1/write/metrics"` | Dataway report path                                                                   |
+| `token`                 | `String`          | Optional | `null`                | DataFlux Workspace Token                                                              |
+| `accessKey`/`secretKey` | `String`/`String` | Optional | `null`/`null`         | Dataway AccessKey and SecretKey for authorization                                     |
+| `debug`                 | `Boolean`         | Optional | `false`               | Print detailed debug info or not                                                      |
 
 The following instantiation are equivalent:
-- `Dataway({ url: "http://localhost:9528/v1/write/metrics" })`
-- `Dataway({ host: "localhost", port: "9528", protocol: "http", path: "/v1/write/metrics" })`
+- `Dataway({ url: "http://localhost:9528/v1/write/metrics?token=xxxxxx" })`
+- `Dataway({ host: "localhost", port: "9528", protocol: "http", path: "/v1/write/metrics", token: 'xxxxxx' })`
 
-`datakitUUID` should be specified by business system name for being queried in DataFlux.
+`token` can be place in `url` or be passed as `token` parameter.
 
 `accessKey`/`secretKey` is required when the authorization of Dataway opened. To open the authorization of Dataway:
 

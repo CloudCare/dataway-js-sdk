@@ -1437,6 +1437,17 @@
       return args[i] + '';
     });
   };
+  function parseQuery(query) {
+    if (query[0] === '?') query = query.slice(1);
+
+    var queryObj = {};
+    query.split('&').forEach(function(kvExpr) {
+      var kvPair = kvExpr.split('=');
+      queryObj[kvPair[0]] = kvPair[1];
+    });
+
+    return queryObj;
+  };
 
   function padLeft(str, char, length) {
     while(str.length < length) str = char + str;
@@ -1475,14 +1486,14 @@
     this.METHOD       = 'POST';
 
     options = options || {};
-    this.host        = options.host || 'localhost';
-    this.port        = parseInt(options.port || 9528);
-    this.protocol    = options.protocol || 'http';
-    this.path        = options.path || '/v1/write/metrics';
-    this.datakitUUID = options.datakitUUID || 'dataway-js-sdk-nodep';
-    this.accessKey   = options.accessKey;
-    this.secretKey   = options.secretKey;
-    this.debug       = options.debug || false;
+    this.host      = options.host || 'localhost';
+    this.port      = parseInt(options.port || 9528);
+    this.protocol  = options.protocol || 'http';
+    this.path      = options.path || '/v1/write/metrics';
+    this.token     = options.token;
+    this.accessKey = options.accessKey;
+    this.secretKey = options.secretKey;
+    this.debug     = options.debug || false;
 
     if (this.debug) {
       if (isBrowser) {
@@ -1501,7 +1512,10 @@
         this.path = parsedURL.pathname;
       }
       if (parsedURL.search) {
-        this.path += parsedURL.search;
+        var parsedQuery = parseQuery(parsedURL.search);
+        if ('token' in parsedQuery) {
+          this.token = parsedQuery.token;
+        }
       }
 
       this.host = parsedURL.hostname;
@@ -1510,6 +1524,10 @@
       } else {
         this.port = this.protocol === 'https' ? 443 : 80;
       }
+    }
+
+    if (!this.token) {
+      throw new Error('`token` is required');
     }
   };
 
@@ -1805,8 +1823,7 @@
 
   Dataway.prototype._prepareHeaders = function(body) {
     var headers = {
-      'Content-Type'  : this.CONTENT_TYPE,
-      'X-Datakit-UUID': this.datakitUUID,
+      'Content-Type': this.CONTENT_TYPE,
     };
 
     if (!this.accessKey || !this.secretKey) {
@@ -1849,7 +1866,7 @@
     var self = this;
 
     var xhr = new XMLHttpRequest();
-    xhr.open(self.METHOD, strf('{0}://{1}:{2}{3}', self.protocol, self.host, self.port, self.path));
+    xhr.open(self.METHOD, strf('{0}://{1}:{2}{3}?token={4}', self.protocol, self.host, self.port, self.path, self.token));
 
     if (headers) {
       for (var k in headers) if (headers.hasOwnProperty(k)) {
@@ -1887,7 +1904,7 @@
     var requestOptions = {
       host   : self.host,
       port   : self.port,
-      path   : self.path,
+      path   : self.path + strf('?token={0}', self.token),
       method : self.METHOD,
       headers: headers,
       timeout: 3 * 1000,
