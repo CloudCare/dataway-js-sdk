@@ -1414,11 +1414,13 @@
   var MIN_ALLOWED_NS_TIMESTAMP = '1000000000000000000';
 
   var ESCAPE_REPLACER           = '\\$1';
-  var RE_ESCAPE_TAG_KEY         = /([,= ])'/g;
+  var RE_ESCAPE_TAG_KEY         = /([,= ])/g;
   var RE_ESCAPE_TAG_VALUE       = RE_ESCAPE_TAG_KEY;
   var RE_ESCAPE_FIELD_KEY       = RE_ESCAPE_TAG_KEY;
-  var RE_ESCAPE_MEASUREMENT     = /([, ])'/g;
-  var RE_ESCAPE_FIELD_STR_VALUE = /(["])'/g;
+  var RE_ESCAPE_MEASUREMENT     = /([, ])/g;
+  var RE_ESCAPE_FIELD_STR_VALUE = /(["])/g;
+
+  var ALERT_LEVELS = ['critical', 'warning', 'info', 'ok'];
 
   function strf() {
     var args = Array.prototype.slice.call(arguments);
@@ -1459,7 +1461,7 @@
   }
 
   function isObject(o) {
-    return !!(o && 'object' === typeof o && !Array.isArray(o));
+    return Object.prototype.toString.call(o) === '[object Object]';
   }
   function isString(o) {
     return 'string' === typeof o;
@@ -1480,8 +1482,104 @@
   function asInt(i) {
     return new IntVal(i);
   }
+  function stringifyTags(o) {
+    switch (Object.prototype.toString.call(o)) {
+      case '[object Object]':
+        break;
 
-  function Dataway(options) {
+      case '[object Array]':
+        return JSON.stringify(o.map(stringifyTags));
+
+      default:
+        return JSON.stringify(o);
+    }
+
+    var keys = Object.keys(o);
+    keys.sort();
+
+    var parts = [];
+    keys.forEach(function(k) {
+      parts.push(JSON.stringify(k) + ':' + stringifyTags(o[k]));
+    });
+
+    return '{' + parts.join(',') + '}';
+  }
+
+  var ASSERT_TYPE_MAP = {
+    json: {
+      type   : '[object Object]',
+      message: 'should be a JSON object',
+    },
+    str: {
+      type   : '[object String]',
+      message: 'should be a String',
+    },
+  }
+  function _assertType(data, dataType, name) {
+    var _dataType = Object.prototype.toString.call(data);
+    if (_dataType !== ASSERT_TYPE_MAP[dataType].type) {
+      throw new Error(strf('`{0}` {1}, got {2}', name, ASSERT_TYPE_MAP[dataType].message, _dataType));
+    }
+    return data;
+  }
+  function assertJSON(data, name) {
+    return _assertType(data, 'json', name);
+  }
+  function assertStr(data, name) {
+    return _assertType(data, 'str', name);
+  }
+
+  function assertTimestamp(data, name) {
+    if ('number' !== typeof data && !data.match(/^([1-9]\d+|\d)(\.\d*[1-9])?$/g)) {
+      throw new Error(strf('`{0}` should be a number or a number string, got {1}', name, data));
+    }
+  }
+
+  function assertInt(data, name) {
+    if (!isInteger(data)) {
+      throw new Error(strf('`{0}` should be an number without point', name));
+    }
+    return data;
+  }
+
+  function assertEnum(data, name, options) {
+    if (options.indexOf(data) < 0) {
+      throw new Error(strf('`{0}` should be one of {1}', name, options.join(',')));
+    }
+    return data;
+  }
+
+  function assertTags(data, name) {
+    assertJSON(data, name);
+    for (var k in data) if (data.hasOwnProperty(k)) {
+      var v = data[k];
+      assertStr(k, strf('Key of `{0}`: {1}', name));
+      assertStr(v, strf('Value of `{0}["{1}"]`: {2}', name, k ,v));
+    }
+    return data;
+  }
+
+  function assertJSONStr(data, name) {
+    if ('string' === typeof data) {
+      try {
+        data = stringifyTags(JSON.parse(data));
+      } catch(e) {
+        throw new Error(strf('`{0}` should be a JSON or JSON string', name));
+      }
+
+    } else if (isObject(data)) {
+      try {
+        data = stringifyTags(data)
+      } catch(e) {
+        throw new Error(strf('`{0}` should be a JSON or JSON string', name));
+      }
+    } else {
+      throw new Error(strf('`{0}` should be a JSON or JSON string', name));
+    }
+    return data;
+  }
+
+  function DataWay(options) {
     this.CONTENT_TYPE = 'text/plain';
     this.METHOD       = 'POST';
 
@@ -1529,9 +1627,9 @@
     if (!this.token) {
       throw new Error('`token` is required');
     }
-  };
+  }
 
-  Dataway.prototype._toNsString = function(timestamp) {
+  DataWay.prototype._toNsString = function(timestamp) {
     timestamp = timestamp.toString();
     if (timestamp.indexOf('e') >= 0) {
       var parts = timestamp.split('e');
@@ -1552,191 +1650,47 @@
     return timestamp;
   };
 
-  Dataway.prototype._preparePoint = function(point) {
-    if (!isObject(point)) {
-      throw new Error('`point` should be an Object');
-    }
+  DataWay.prototype._getBodyMD5 = function(body) {
+    var hash = CryptoJS.MD5(body);
+    var md5Res = CryptoJS.enc.Base64.stringify(hash);
 
-    var measurement = point.measurement;
-    if (!isString(measurement)) {
-      throw new Error('`measurement` should be a String');
-    }
+    return md5Res;
+  };
 
-    var tags = point.tags;
-    if (tags) {
-      if (!isObject(tags)) {
-        throw new Error('`tags` should be an Object');
-      }
+  DataWay.prototype._getSign = function(strToSign) {
+    var hash = CryptoJS.HmacSHA1(strToSign, this.secretKey);
+    var md5Res = CryptoJS.enc.Base64.stringify(hash);
 
-      for (var k in tags) if (tags.hasOwnProperty(k)) {
-        var v = tags[k];
-        if (!isString(v)) {
-          throw new Error('`tags` value should be a String');
-        }
-      }
-    }
+    return md5Res;
+  };
 
-    var fields = point.fields;
-    if (fields) {
-      if (!isObject(fields)) {
-        throw new Error('`fields` should be an Object');
-      }
-    }
-
-    var timestamp = point.timestamp;
-    if (timestamp) {
-      if (!isNumber(timestamp) && !isString(timestamp)) {
-        throw new Error('`timestamp` should be a Number or String');
-      }
-    }
-
-    if (!timestamp) {
-      timestamp = Date.now();
-    }
-
-    timestamp = this._toNsString(timestamp);
-
-    var point = {
-        measurement: measurement,
-        tags       : tags   || null,
-        fields     : fields || null,
-        timestamp  : timestamp,
+  DataWay.prototype._prepareHeaders = function(body) {
+    var headers = {
+      'Content-Type': this.CONTENT_TYPE,
     };
-    return point;
+
+    if (!this.accessKey || !this.secretKey) {
+      return headers;
+    }
+
+    var bodyMD5 = this._getBodyMD5(body);
+    var dateStr = new Date().toGMTString();
+    var strToSign = [this.METHOD, bodyMD5, this.CONTENT_TYPE, dateStr].join('\n');
+
+    var sign = this._getSign(strToSign);
+
+    if (this.debug) {
+      console.log(strf('\n[String to sign] {0}', JSON.stringify(strToSign)));
+      console.log(strf('[Signature] {0}', JSON.stringify(sign)));
+    }
+
+    headers['Date']          = dateStr;
+    headers['Authorization'] = strf('DWAY {0}:{1}', this.accessKey, sign);
+
+    return headers;
   };
 
-  Dataway.prototype._prepareKeyevent = function(keyevent) {
-    if (!isObject(keyevent)) {
-      throw new Error('`keyevent` should be an Object');
-    }
-
-    // Check Tags
-    var tags = keyevent.tags || {};
-
-    var source = keyevent.source;
-    if (source) {
-      if (!isString(source)) {
-        throw new Error('`source` should be a String');
-      } else {
-        tags.$source = source;
-      }
-    }
-
-    var fields = {};
-
-    // Check Fields
-    var title = keyevent.title;
-    if (!isString(title)) {
-      throw new Error('`title` should be a String');
-    } else {
-      fields.$title = title;
-    }
-
-    var des = keyevent.des;
-    if (des) {
-      if (!isString(des)) {
-        throw new Error('`des` should be a String');
-      } else {
-        fields.$des = des;
-      }
-    }
-
-    var link = keyevent.link;
-    if (link) {
-      if (!isString(link)) {
-        throw new Error('`link` should be a String');
-
-      } else if (link.toLowerCase().indexOf('http://') < 0 && link.toLowerCase().indexOf('https://') < 0
-            || link.slice(-3) === '://') {
-        throw new Error('`link` should be a valid URL with protocol');
-
-      } else {
-        fields.$link = link;
-      }
-    }
-
-    var point = {
-        measurement: '$keyevent',
-        tags       : tags,
-        fields     : fields,
-        timestamp  : keyevent.timestamp,
-    }
-    return this._preparePoint(point);
-  };
-
-  Dataway.prototype._prepareFlow = function(flow) {
-    if (!isObject(flow)) {
-      throw new Error('`flow` should be an Object');
-    }
-
-    // Check Tags
-    var tags = flow.tags || {};
-
-    var traceId = flow.traceId;
-    if (!isString(traceId)) {
-      throw new Error('`traceId` should be a String');
-    } else {
-      tags.$traceId = traceId;
-    }
-
-    var name = flow.name;
-    if (!isString(name)) {
-      throw new Error('`name` should be a String');
-    } else {
-      tags.$name = name;
-    }
-
-    var parent = flow.parent;
-    if (parent) {
-      if (!isString(parent)) {
-        throw new Error('`parent` should be a String');
-      } else {
-        tags.$parent = parent;
-      }
-    }
-
-    // Check Fields
-    var fields = flow.fields || {};
-
-    var durationMs = null;
-    if (flow.durationMs) {
-      if (flow.durationMs instanceof IntVal) {
-        durationMs = flow.durationMs.val;
-      } else {
-        throw new Error('`durationMs` should be an instance of dataway.IntVal');
-      }
-    }
-
-    var duration = null;
-    if (flow.duration) {
-      if (flow.duration instanceof IntVal) {
-        duration = flow.duration.val;
-      } else {
-        throw new Error('`duration` should be an instance of dataway.IntVal');
-      }
-    }
-
-    // to ms
-    if (duration) {
-      duration = duration * 1000;
-    }
-
-    if (!durationMs && !duration) {
-      throw new Error('`duration` or `durationMs` is missing');
-    }
-
-    fields.$duration = asInt(durationMs || duration);
-
-    var point = {
-        measurement: '$flow_' + flow.app,
-        tags       : tags,
-        fields     : fields,
-        timestamp  : flow.timestamp,
-    }
-    return this._preparePoint(point)
-  };
-
-  Dataway.prototype._prepareBody = function(points) {
+  DataWay.prototype._prepareBody = function(points) {
     if (!Array.isArray(points)) points = [points];
 
     var lines = [];
@@ -1807,47 +1761,7 @@
     return body;
   };
 
-  Dataway.prototype._getBodyMD5 = function(body) {
-    var hash = CryptoJS.MD5(body);
-    var md5Res = CryptoJS.enc.Base64.stringify(hash);
-
-    return md5Res;
-  };
-
-  Dataway.prototype._getSign = function(strToSign) {
-    var hash = CryptoJS.HmacSHA1(strToSign, this.secretKey);
-    var md5Res = CryptoJS.enc.Base64.stringify(hash);
-
-    return md5Res;
-  };
-
-  Dataway.prototype._prepareHeaders = function(body) {
-    var headers = {
-      'Content-Type': this.CONTENT_TYPE,
-    };
-
-    if (!this.accessKey || !this.secretKey) {
-      return headers;
-    }
-
-    var bodyMD5 = this._getBodyMD5(body);
-    var dateStr = new Date().toGMTString();
-    var strToSign = [this.METHOD, bodyMD5, this.CONTENT_TYPE, dateStr].join('\n');
-
-    var sign = this._getSign(strToSign);
-
-    if (this.debug) {
-      console.log(strf('\n[String to sign] {0}', JSON.stringify(strToSign)));
-      console.log(strf('[Signature] {0}', JSON.stringify(sign)));
-    }
-
-    headers['Date']          = dateStr;
-    headers['Authorization'] = strf('DWAY {0}:{1}', this.accessKey, sign);
-
-    return headers;
-  };
-
-  Dataway.prototype._sendPoints = function(points, callback) {
+  DataWay.prototype._sendPoints = function(points, callback) {
     var body = this._prepareBody(points);
     if (this.debug) {
       console.log(strf('[Request Body]\n{0}', body))
@@ -1862,7 +1776,7 @@
     }
   };
 
-  Dataway.prototype._sendPoints_browser = function(body, headers, callback) {
+  DataWay.prototype._sendPoints_browser = function(body, headers, callback) {
     var self = this;
 
     var xhr = new XMLHttpRequest();
@@ -1897,7 +1811,7 @@
     xhr.send(body);
   };
 
-  Dataway.prototype._sendPoints_node = function(body, headers, callback) {
+  DataWay.prototype._sendPoints_node = function(body, headers, callback) {
     var self = this;
 
     // Do HTTP/HTTPS
@@ -1953,7 +1867,39 @@
     req.end();
   };
 
-  Dataway.prototype.writePoint = function(data, callback) {
+  // point
+  DataWay.prototype._preparePoint = function(point) {
+    assertJSON(point, 'point');
+
+    var measurement = assertStr(point.measurement, 'measurement');
+
+    var tags = point.tags;
+    if (tags) {
+      assertJSON(tags, 'tags');
+      assertTags(tags, 'tags');
+    }
+
+    var fields = assertJSON(point.fields, 'fields')
+
+    var timestamp = point.timestamp;
+    if (timestamp) {
+      assertTimestamp(timestamp, 'timestamp')
+    } else {
+      timestamp = Date.now();
+    }
+
+    timestamp = this._toNsString(timestamp);
+
+    var point = {
+        measurement: measurement,
+        tags       : tags   || null,
+        fields     : fields || null,
+        timestamp  : timestamp,
+    };
+    return point;
+  };
+
+  DataWay.prototype.writePoint = function(data, callback) {
     var point = {
         measurement: data.measurement,
         tags       : data.tags,
@@ -1965,7 +1911,7 @@
     this._sendPoints(preparedPoint, callback);
   };
 
-  Dataway.prototype.writePoints = function(points, callback) {
+  DataWay.prototype.writePoints = function(points, callback) {
     var self = this;
 
     if (!Array.isArray(points)) {
@@ -1980,7 +1926,55 @@
     self._sendPoints(preparedPoints, callback);
   };
 
-  Dataway.prototype.writeKeyevent = function(data, callback) {
+  // $keyevent
+  DataWay.prototype._prepareKeyevent = function(keyevent) {
+    assertJSON(keyevent, 'keyevent');
+
+    // Check Tags
+    var tags = keyevent.tags || {};
+    assertTags(tags, 'tags')
+
+    // Tags.$source
+    var source = keyevent.source;
+    if (source) {
+      tags.$source = assertStr(source, 'source');
+    }
+
+    // Check Fields
+    var fields = {};
+
+    // Fields.$title
+    fields.$title = assertStr(keyevent.title, 'title');
+
+    // Fields.$des
+    var des = keyevent.des;
+    if (des) {
+      fields.$des = assertStr(des, 'des');
+    }
+
+    // Fields.$link
+    var link = keyevent.link;
+    if (link) {
+      assertStr(link, 'link')
+
+      if (link.toLowerCase().indexOf('http://') < 0 && link.toLowerCase().indexOf('https://') < 0
+            || link.slice(-3) === '://') {
+        throw new Error('`link` should be a valid URL with protocol');
+      }
+
+      fields.$link = link;
+    }
+
+    var point = {
+        measurement: '$keyevent',
+        tags       : tags,
+        fields     : fields,
+        timestamp  : keyevent.timestamp,
+    }
+    return this._preparePoint(point);
+  };
+
+  DataWay.prototype.writeKeyevent = function(data, callback) {
     var keyevent = {
         title    : data.title,
         des      : data.des,
@@ -1993,7 +1987,7 @@
     this._sendPoints(preparedPoint, callback);
   };
 
-  Dataway.prototype.writeKeyevents = function(keyevents, callback) {
+  DataWay.prototype.writeKeyevents = function(keyevents, callback) {
     var self = this;
 
     if (!Array.isArray(keyevents)) {
@@ -2008,7 +2002,64 @@
     self._sendPoints(preparedPoints, callback);
   };
 
-  Dataway.prototype.writeFlow = function(data, callback) {
+  // $flow
+  DataWay.prototype._prepareFlow = function(flow) {
+    assertJSON(flow, 'flow');
+
+    // Check Tags
+    var tags = flow.tags || {};
+    assertTags(tags, 'tags');
+
+    // Measurements.$flow_*
+    assertStr(flow.app, 'app');
+
+    // Tags.$traceId
+    tags.$traceId = assertStr(flow.traceId, 'traceId');
+
+    // Tags.$name
+    tags.$name = assertStr(flow.name, 'name');
+
+    // Tags.$parent
+    var parent = flow.parent;
+    if (parent) {
+      tags.$parent = assertStr(parent, 'parent');
+    }
+
+    // Check Fields
+    var fields = flow.fields || {};
+    assertJSON(fields, 'fields');
+
+    // Tags.$duration
+    var durationMs = flow.durationMs;
+    if (durationMs) {
+      assertInt(durationMs, 'durationMs')
+    }
+
+    var duration = flow.duration;
+    if (duration) {
+      assertInt(duration, 'duration')
+    }
+
+    // to ms
+    if (duration) {
+      duration = duration * 1000;
+    }
+
+    if (!durationMs && !duration) {
+      throw new Error('`duration` or `durationMs` is missing');
+    }
+    fields.$duration = asInt(durationMs || duration);
+
+    var point = {
+        measurement: '$flow_' + flow.app,
+        tags       : tags,
+        fields     : fields,
+        timestamp  : flow.timestamp,
+    }
+    return this._preparePoint(point)
+  };
+
+  DataWay.prototype.writeFlow = function(data, callback) {
     var flow = {
         app       : data.app,
         traceId   : data.traceId,
@@ -2024,7 +2075,7 @@
     this._sendPoints(preparedPoint, callback);
   };
 
-  Dataway.prototype.writeFlows = function(flows, callback) {
+  DataWay.prototype.writeFlows = function(flows, callback) {
     var self = this;
 
     if (!Array.isArray(flows)) {
@@ -2039,8 +2090,134 @@
     self._sendPoints(preparedPoints, callback);
   };
 
+  // $alert
+  DataWay.prototype._prepareAlert = function(alert) {
+    assertJSON(alert, 'alert');
+
+    // Check Tags
+    var tags = alert.tags || {};
+    assertTags(tags, 'tags')
+
+    // Tags.$level
+    tags.$level = assertEnum(alert.level, 'level', ALERT_LEVELS);
+
+    // Tags.$alertId
+    tags.$alertId = assertStr(alert.alertId, 'alertId');
+
+    // Tags.$ruleId
+    var ruleId = alert.ruleId;
+    if (ruleId) {
+      tags.$ruleId = assertStr(ruleId, 'ruleId');
+    }
+
+    // Tags.$noData
+    var noData = alert.noData;
+    if (noData) {
+      tags.$noData = 'noData';
+    }
+
+    // Tags.$alertItem_*
+    var alertItemTags = alert.alertItemTags;
+    if (alertItemTags) {
+      assertTags(alertItemTags, 'alertItemTags');
+
+      for (var k in alertItemTags) if (alertItemTags.hasOwnProperty(k)) {
+        tags['$alertItem_' + k] = alertItemTags[k];
+      }
+    }
+
+    // Tags.$actionType
+    var actionType = alert.actionType;
+    if (actionType) {
+      tags.$actionType = assertStr(actionType, 'actionType');
+    }
+
+    // Check Fields
+    var fields = {};
+
+    // Tags.$duration
+    var durationMs = alert.durationMs;
+    if (durationMs) {
+      assertInt(durationMs, 'durationMs')
+    }
+
+    var duration = alert.duration;
+    if (duration) {
+      assertInt(duration, 'duration')
+    }
+
+    // to ms
+    if (duration) {
+      duration = duration * 1000;
+    }
+
+    if (!durationMs && !duration) {
+      throw new Error('`duration` or `durationMs` is missing');
+    }
+    fields.$duration = asInt(durationMs || duration);
+
+    // Fields.$checkValueJSON
+    fields.$checkValueJSON = assertJSONStr(alert.checkValue, 'checkValue');
+
+    // Fields.$ruleName
+    var ruleName = alert.ruleName;
+    if (ruleName) {
+      fields.$ruleName = assertStr(ruleName, 'ruleName');
+    }
+
+    // Fields.$actionContentJSON
+    var actionContent = alert.actionContent;
+    if (actionContent) {
+      fields.$actionContentJSON = assertJSONStr(actionContent, 'checkValue');
+    }
+
+    var point = {
+        measurement: '$alert',
+        tags       : tags,
+        fields     : fields,
+        timestamp  : alert.timestamp,
+    }
+    return this._preparePoint(point)
+  };
+
+  DataWay.prototype.writeAlert = function(data, callback) {
+    var alert = {
+      level        : data.level,
+      alertId      : data.alertId,
+      ruleId       : data.ruleId,
+      ruleName     : data.ruleName,
+      noData       : data.noData,
+      duration     : data.duration,
+      durationMs   : data.durationMs,
+      checkValue   : data.checkValue,
+      actionType   : data.actionType,
+      actionContent: data.actionContent,
+      alertItemTags: data.alertItemTags,
+      tags         : data.tags,
+      timestamp    : data.timestamp,
+    }
+    var preparedPoint = this._prepareAlert(alert);
+    this._sendPoints(preparedPoint, callback);
+  };
+
+  DataWay.prototype.writeAlerts = function(alerts, callback) {
+    var self = this;
+
+    if (!Array.isArray(alerts)) {
+      throw new Error('`alerts` should be an array');
+    }
+
+    var preparedPoints = [];
+    alerts.forEach(function(d) {
+      preparedPoints.push(self._prepareAlert(d));
+    })
+
+    self._sendPoints(preparedPoints, callback);
+  };
+
   return {
-    Dataway: Dataway,
+    DataWay: DataWay,
+    Dataway: DataWay,
     asInt  : asInt,
   };
 }));

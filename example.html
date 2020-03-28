@@ -1,6 +1,6 @@
 <html>
   <body>
-    <h1>Dataway JS SDK Example</h1>
+    <h1>DataWay JS SDK Example</h1>
     <p>Please open the develop tool to checkout the console output.</p>
   </body>
   <script type="text/javascript" src="dataway.min.js"></script>
@@ -21,7 +21,7 @@
       document.getElementsByTagName('body')[0].append(node);
     }
 
-    var dw = new dataway.Dataway({
+    var dw = new dataway.DataWay({
       debug   : true,
       protocol: 'https',
       host    : 'openway.dataflux.cn',
@@ -55,14 +55,14 @@
     ];
 
     // 1
-    printSep('Dataway.writePoint()')
+    printSep('DataWay.writePoint()')
     dw.writePoint(points[0], function(err, ret) {
-      printResp('Dataway.writePoint()', ret);
+      printResp('DataWay.writePoint()', ret);
 
       // 2
-      printSep('Dataway.writePoints()')
+      printSep('DataWay.writePoints()')
       dw.writePoints(points, function(err, ret) {
-        printResp('Dataway.writePoints()', ret);
+        printResp('DataWay.writePoints()', ret);
       });
     });
   </script>

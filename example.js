@@ -7,7 +7,7 @@ function printSep(title) {
   console.log(line + ' [' + title + '] ' + line);
 }
 
-var dw = new dataway.Dataway({
+var dw = new dataway.DataWay({
   debug   : true,
   protocol: 'https',
   host    : 'openway.dataflux.cn',
@@ -38,6 +38,16 @@ var points = [
     'measurement': 'M1',
     'fields'     : {'F1': 'A'},
   },
+  {
+      'measurement': '中文指标名',
+      'tags'       : {'中文标签': '中文标签值'},
+      'fields'     : {'中文字段': '中文字段值'},
+  },
+  {
+      'measurement': '中文指标名2',
+      'tags'       : {'中文标签2': '中文标签值2'},
+      'fields'     : {'中文字段2': '中文字段值2'},
+  },
 ];
 
 var keyevents = [
@@ -60,7 +70,7 @@ var flows = [
     'app'      : 'A1',
     'traceId'  : 'TRACE-001',
     'name'     : 'N1',
-    'duration' : dataway.asInt(10),
+    'duration' : 10,
     'parent'   : 'P1',
     'tags'     : {'T1': 'X'},
     'fields'   : {'F1': 'A'},
@@ -70,34 +80,75 @@ var flows = [
     'app'       : 'A1',
     'traceId'   : 'TRACE-001',
     'name'      : 'N1',
-    'durationMs': dataway.asInt(10000),
+    'durationMs': 10000,
     'timestamp' : 1577808001,
   },
 ];
 
+var alerts = [
+  {
+    'level'        : 'critical',
+    'alertId'      : 'ALERT-001',
+    'ruleId'       : 'RULE-001',
+    'ruleName'     : 'R1',
+    'noData'       : true,
+    'duration'     : 10,
+    'checkValue'   : {'M1': 90, 'M2': 90},
+    'actionType'   : 'mail',
+    'actionContent': {'to': 'someone@somemail.com', 'title': 'Test Alert Title', 'content': 'Test Alert Value'},
+    'alertItemTags': {'T1': 'X', 'T2': 'Y'},
+    'tags'         : {'T1': 'X'},
+    'timestamp'    : 1577808000,
+  },
+  {
+    'level'        : 'ok',
+    'alertId'      : 'ALERT-001',
+    'ruleId'       : 'RULE-001',
+    'ruleName'     : 'R1',
+    'noData'       : false,
+    'durationMs'   : 10000,
+    'checkValue'   : {'M1': 10, 'M2': 10},
+    'actionType'   : 'mail',
+    'actionContent': {'to': 'someone@somemail.com', 'title': 'Test Alert Title', 'content': 'Test Alert Value'},
+    'alertItemTags': {'T1': 'X', 'T2': 'Y'},
+    'tags'         : {'T1': 'X'},
+    'timestamp'    : 1577808001,
+  },
+];
+
 // 1
-printSep('Dataway.writePoint()')
+printSep('DataWay write point')
 dw.writePoint(points[0], function() {
 
   // 2
-  printSep('Dataway.writePoints()')
+  printSep('DataWay write points')
   dw.writePoints(points, function() {
 
     // 3
-    printSep('Dataway.writeKeyevent()')
+    printSep('DataWay write keyevent')
     dw.writeKeyevent(keyevents[0], function() {
 
       // 4
-      printSep('Dataway.writeKeyevents()')
+      printSep('DataWay write keyevents')
       dw.writeKeyevents(keyevents, function() {
 
         // 5
-        printSep('Dataway.writeFlow()')
+        printSep('DataWay write flow')
         dw.writeFlow(flows[0], function() {
 
           // 6
-          printSep('Dataway.writeFlows()')
-          dw.writeFlows(flows);
+          printSep('DataWay write flows')
+          dw.writeFlows(flows, function() {
+
+            // 7
+            printSep('DataWay write alert')
+            dw.writeAlert(alerts[0], function() {
+
+              // 8
+              printSep('DataWay write alerts')
+              dw.writeAlerts(alerts);
+            });
+          });
         });
       });
     });

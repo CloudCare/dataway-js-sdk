@@ -1,6 +1,6 @@
-# DataFlux Dataway JS SDK -nodep
+# DataFlux DataWay JS SDK -nodep
 
-A DataFlux Dataway SDK for Javascript.
+A DataFlux DataWay SDK for Javascript.
 
 [中文版](README.md)
 
@@ -18,9 +18,9 @@ A DataFlux Dataway SDK for Javascript.
     - microsecond (1/1000,000 second)
     - nanosecond (1/1000,000,000 second)
 
-3. `Keyevent`/`FLow` Support.
+3. `Keyevent` / `FLow` / `Alert` Support.
 
-4. Dataway Authorization support.
+4. DataWay Authorization support.
 
 5. HTTP/HTTPS support.
 
@@ -30,10 +30,10 @@ A DataFlux Dataway SDK for Javascript.
 
 ## TODO
 
-1. Because of the current version of Dataway does not handle the Cross-Site AJAX request from browser properly,
+1. Because of the current version of DataWay does not handle the Cross-Site AJAX request from browser properly,
 a proxy like backend server or Nginx may be needed when using SDK in frontend projects.
 
-2. Because of the requirement of `Date` header by the current version of Dataway in ak-open mode,
+2. Because of the requirement of `Date` header by the current version of DataWay in ak-open mode,
 signature is not avaliable in frontend projects. (`Date` header is not allowed in AJAX request according to the standard).
 
 ## Installation
@@ -47,7 +47,7 @@ See [example.js](example.js) or [example.html](example.html)
 ```javascript
 var dataway = require('./dataway');
 
-var dw = new dataway.Dataway({
+var dw = new dataway.DataWay({
   url: 'http://localhost:9528/v1/write/metrics?token=xxxxxx',
 });
 
@@ -78,28 +78,28 @@ dw.writePoints([
 
 ## API Document
 
-###### *class* `Dataway(options)`
+###### *class* `DataWay(options)`
 
-Dataway class
+DataWay class
 
 |   Fields of `options`   |        Type       | Required |     Default Value     |                                      Description                                      |
 |-------------------------|-------------------|----------|-----------------------|---------------------------------------------------------------------------------------|
-| `url`                   | `String`          | Optional | `null`                | Dataway full access URL, e.g. `"http://localhost:9528/v1/write/metrics?token=xxxxxx"` |
-| `host`                  | `String`          | Optional | `"localhost"`         | Dataway host                                                                          |
-| `port`                  | `Integer`         | Optional | `9528`                | Dataway port                                                                          |
-| `protocol`              | `String`          | Optional | `"http"`              | Dataway protocol. `"http"`/`"https"`                                                  |
-| `path`                  | `String`          | Optional | `"/v1/write/metrics"` | Dataway report path                                                                   |
+| `url`                   | `String`          | Optional | `null`                | DataWay full access URL, e.g. `"http://localhost:9528/v1/write/metrics?token=xxxxxx"` |
+| `host`                  | `String`          | Optional | `"localhost"`         | DataWay host                                                                          |
+| `port`                  | `Integer`         | Optional | `9528`                | DataWay port                                                                          |
+| `protocol`              | `String`          | Optional | `"http"`              | DataWay protocol. `"http"`/`"https"`                                                  |
+| `path`                  | `String`          | Optional | `"/v1/write/metrics"` | DataWay report path                                                                   |
 | `token`                 | `String`          | Optional | `null`                | DataFlux Workspace Token                                                              |
-| `accessKey`/`secretKey` | `String`/`String` | Optional | `null`/`null`         | Dataway AccessKey and SecretKey for authorization                                     |
+| `accessKey`/`secretKey` | `String`/`String` | Optional | `null`/`null`         | DataWay AccessKey and SecretKey for authorization                                     |
 | `debug`                 | `Boolean`         | Optional | `false`               | Print detailed debug info or not                                                      |
 
 The following instantiation are equivalent:
-- `Dataway({ url: "http://localhost:9528/v1/write/metrics?token=xxxxxx" })`
-- `Dataway({ host: "localhost", port: "9528", protocol: "http", path: "/v1/write/metrics", token: 'xxxxxx' })`
+- `DataWay({ url: "http://localhost:9528/v1/write/metrics?token=xxxxxx" })`
+- `DataWay({ host: "localhost", port: "9528", protocol: "http", path: "/v1/write/metrics", token: 'xxxxxx' })`
 
 `token` can be place in `url` or be passed as `token` parameter.
 
-`accessKey`/`secretKey` is required when the authorization of Dataway opened. To open the authorization of Dataway:
+`accessKey`/`secretKey` is required when the authorization of DataWay opened. To open the authorization of DataWay:
 
 ```shell
 sudo vim /usr/local/cloudcare/forethought/dataway/dataway.yaml
@@ -122,7 +122,7 @@ Finally, the AccessKey and SecretKey are the `accessKey` and `secretKey` in the 
 
 
 
-###### *method* `Dataway.writePoint(data)`
+###### *method* `DataWay.writePoint(data, callback)`
 
 Write one point
 
@@ -141,7 +141,7 @@ Write one point
 
 
 
-###### *method* `Dataway.writePoints(points)`
+###### *method* `DataWay.writePoints(points, callback)`
 
 Write many points
 
@@ -161,7 +161,7 @@ Write many points
 
 
 
-###### *method* `Dataway.writeKeyevent(data)`
+###### *method* `DataWay.writeKeyevent(data, callback)`
 
 Write a key event
 
@@ -182,7 +182,7 @@ Write a key event
 
 
 
-###### *method* `Dataway.writeKeyevents(keyevents)`
+###### *method* `DataWay.writeKeyevents(keyevents, callback)`
 
 Write many key events
 
@@ -204,7 +204,7 @@ Write many key events
 
 
 
-###### *method* `Dataway.writeFlow(data)`
+###### *method* `DataWay.writeFlow(data, callback)`
 
 Write a flow
 
@@ -230,7 +230,7 @@ Either `data.duration` or `data.durationMs` should be spcified.
 
 
 
-###### *method* `Dataway.writeFlows(flows)`
+###### *method* `DataWay.writeFlows(flows, callback)`
 
 Write many flows
 
@@ -248,6 +248,64 @@ Write many flows
 | `flows[#].tags`       | `JSON`     | Optional    | `undefined`   | extra tags. Both key and value should be a string                                                            |
 | `flows[#].fields`     | `JSON`     | Optional    | `undefined`   | extra fields. Key should be a string, value should be a string/integer/float/boolean value                   |
 | `callback`            | `Function` | Optional    | `undefined`   | Callback function `function(err, ret)`                                                                       |
+
+
+
+---
+
+
+
+###### *method* `DataWay.writeAlert(data, callback)`
+
+Write an alert
+
+|         参数         |           类型           |   是否必须  |   默认值    |                                                     说明                                                     |
+|----------------------|--------------------------|-------------|-------------|--------------------------------------------------------------------------------------------------------------|
+| `data.level`         | `String`                 | Required    |             | one of `"critical"` / `"warning"` / `"info"` / `"ok"`                                                        |
+| `data.alertId`       | `String`                 | Required    |             | alert ID                                                                                                     |
+| `data.checkValue`    | `JSON` / `String` (JSON) | Required    |             | check Value in JSON or JSON string                                                                           |
+| `data.timestamp`     | `Number`                 | Required    |             | timestamp, Support second/millisecond/microsecond/nanosecond. SDK will detect and auto convert to nanosecond |
+| `data.duration`      | `Integer`                | Alternative |             | duration of the flow on the node (second)                                                                    |
+| `data.durationMs`    | `Integer`                | Alternative |             | duration of the flow on the node (millisecond)                                                               |
+| `data.ruleId`        | `String`                 | Optional    |             | rule ID                                                                                                      |
+| `data.ruleName`      | `String`                 | Optional    |             | rule Name                                                                                                    |
+| `data.noData`        | `Boolean`                | Optional    |             | if the alert is a no-data alert                                                                              |
+| `data.actionType`    | `String`                 | Optional    |             | action type                                                                                                  |
+| `data.actionContent` | `JSON` / `String` (JSON) | Optional    |             | action data in JSON or JSON string                                                                           |
+| `data.alertItemTags` | `JSON`                   | Optional    | `undefined` | alert item extra tags. Both key and value should be a string                                                 |
+| `data.tags`          | `JSON`                   | Optional    | `undefined` | extra tags. Both key and value should be a string                                                            |
+| `callback`           | `Function`               | Optional    | `undefined` | Callback function `function(err, ret)`                                                                       |
+
+Either `data.duration` or `data.durationMs` should be spcified.
+
+
+
+---
+
+
+
+###### *method* `DataWay.writeAlerts(alerts, callback)`
+
+Write many alerts
+
+|           参数           |           类型           |   是否必须  |   默认值    |                                                     说明                                                     |
+|--------------------------|--------------------------|-------------|-------------|--------------------------------------------------------------------------------------------------------------|
+| `alert`                  | `Array`                  | Required    |             | alert list                                                                                                   |
+| `alert[#]`               | `JSON`                   | Required    |             | alert data                                                                                                   |
+| `alert[#].level`         | `String`                 | Required    |             | `one of `"critical"` / `"warning"` / `"info"` / `"ok"`                                                       |
+| `alert[#].alertId`       | `String`                 | Required    |             | alert ID                                                                                                     |
+| `alert[#].checkValue`    | `JSON` / `String` (JSON) | Required    |             | check Value in JSON or JSON string                                                                           |
+| `alert[#].timestamp`     | `Number`                 | Required    |             | timestamp, Support second/millisecond/microsecond/nanosecond. SDK will detect and auto convert to nanosecond |
+| `alert[#].duration`      | `Integer`                | Alternative |             | duration of the flow on the node (second)                                                                    |
+| `alert[#].durationMs`    | `Integer`                | Alternative |             | duration of the flow on the node (millisecond)                                                               |
+| `alert[#].ruleId`        | `String`                 | Optional    |             | rule ID                                                                                                      |
+| `alert[#].ruleName`      | `String`                 | Optional    |             | rule Name                                                                                                    |
+| `alert[#].noData`        | `Boolean`                | Optional    |             | if the alert is a no-data alert                                                                              |
+| `alert[#].actionType`    | `String`                 | Optional    |             | action type                                                                                                  |
+| `alert[#].actionContent` | `JSON` / `String` (JSON) | Optional    |             | action data in JSON or JSON string                                                                           |
+| `alert[#].alertItemTags` | `JSON`                   | Optional    | `undefined` | alert item extra tags. Both key and value should be a string                                                 |
+| `alert[#].tags`          | `JSON`                   | Optional    | `undefined` | extra tags. Both key and value should be a string                                                            |
+| `callback`               | `Function`               | Optional    | `undefined` | Callback function `function(err, ret)`                                                                       |
 
 ## Announcement
 

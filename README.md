@@ -1,6 +1,6 @@
-# DataFlux Dataway JS SDK -nodep
+# DataFlux DataWay JS SDK -nodep
 
-Javascript 版 DataFlux Dataway SDK。
+Javascript 版 DataFlux DataWay SDK。
 
 [English Version](README-en.md)
 
@@ -18,9 +18,9 @@ Javascript 版 DataFlux Dataway SDK。
     - 微秒（1/1000,000 秒）
     - 纳秒（1/1000,000,000 秒）
 
-3. 关键事件（`Keyevent`）/流程行为（`FLow`）支持。
+3. 关键事件（`Keyevent`）/ 流程行为（`FLow`）/ 告警（`Alert`）支持。
 
-4. Dataway 认证支持。
+4. DataWay 认证支持。
 
 5. HTTP/HTTPS 支持。
 
@@ -30,10 +30,10 @@ Javascript 版 DataFlux Dataway SDK。
 
 ## TODO
 
-1. 由于当前版本 Dataway 并未对来自浏览器的跨域请求作适当的处理，
+1. 由于当前版本 DataWay 并未对来自浏览器的跨域请求作适当的处理，
 所以在前端项目中使用SDK 时，可能需要后端服务器或Nginx 做代理。
 
-2. 由于当前版本 Dataway 开启认证后，需要调用方在HTTP请求中设置`Date`头。
+2. 由于当前版本 DataWay 开启认证后，需要调用方在HTTP请求中设置`Date`头。
 此要求于浏览器标准冲突，浏览器并不允许AJAX 请求附带`Date` 头，
 所以在浏览器中使用SDK 时，暂时无法使用签名认证。
 
@@ -48,7 +48,7 @@ Javascript 版 DataFlux Dataway SDK。
 ```javascript
 var dataway = require('./dataway');
 
-var dw = new dataway.Dataway({
+var dw = new dataway.DataWay({
   url: 'http://localhost:9528/v1/write/metrics?token=xxxxxx',
 });
 
@@ -79,28 +79,28 @@ dw.writePoints([
 
 ## API文档
 
-###### *class* `Dataway(options)`
+###### *class* `DataWay(options)`
 
-Dataway 类
+DataWay 类
 
 |    `options`参数字段    |        类型       | 是否必须 |        默认值         |                                      说明                                     |
 |-------------------------|-------------------|----------|-----------------------|-------------------------------------------------------------------------------|
-| `url`                   | `String`          | 可选     | `null`                | Dataway 完整地址，如：`"http://localhost:9528/v1/write/metrics?token=xxxxxx"` |
-| `host`                  | `String`          | 可选     | `"localhost"`         | Dataway 主机地址                                                              |
-| `port`                  | `Integer`         | 可选     | `9528`                | Dataway 主机端口                                                              |
-| `protocol`              | `String`          | 可选     | `"http"`              | Dataway 访问协议。`"http"`/`"https"`                                          |
-| `path`                  | `String`          | 可选     | `"/v1/write/metrics"` | Dataway 数据上报路径                                                          |
+| `url`                   | `String`          | 可选     | `null`                | DataWay 完整地址，如：`"http://localhost:9528/v1/write/metrics?token=xxxxxx"` |
+| `host`                  | `String`          | 可选     | `"localhost"`         | DataWay 主机地址                                                              |
+| `port`                  | `Integer`         | 可选     | `9528`                | DataWay 主机端口                                                              |
+| `protocol`              | `String`          | 可选     | `"http"`              | DataWay 访问协议。`"http"`/`"https"`                                          |
+| `path`                  | `String`          | 可选     | `"/v1/write/metrics"` | DataWay 数据上报路径                                                          |
 | `token`                 | `String`          | 可选     | `null`                | DataFlux 工作空间上报Token                                                    |
-| `accessKey`/`secretKey` | `String`/`String` | 可选     | `null`/`null`         | Dataway 认证用 AccessKey 和 SecretKey                                         |
+| `accessKey`/`secretKey` | `String`/`String` | 可选     | `null`/`null`         | DataWay 认证用 AccessKey 和 SecretKey                                         |
 | `debug`                 | `Boolean`         | 可选     | `False`               | 是否打印详细调试信息                                                          |
 
 以下两种初始化方式等价：
-- `Dataway({ url: "http://localhost:9528/v1/write/metrics?token=xxxxxx" })`
-- `Dataway({ host: "localhost", port: "9528", protocol: "http", path: "/v1/write/metrics", token: 'xxxxxx' })`
+- `DataWay({ url: "http://localhost:9528/v1/write/metrics?token=xxxxxx" })`
+- `DataWay({ host: "localhost", port: "9528", protocol: "http", path: "/v1/write/metrics", token: 'xxxxxx' })`
 
 `token`可以在`url`中作为参数出现，或者通过`token`传递。
 
-`accessKey`/`secretKey` 只有在 Dataway 开启认证后才需要填写。Dataway 开启认证方式如下：
+`accessKey`/`secretKey` 只有在 DataWay 开启认证后才需要填写。DataWay 开启认证方式如下：
 
 ```shell
 sudo vim /usr/local/cloudcare/forethought/dataway/dataway.yaml
@@ -123,7 +123,7 @@ routes_config:
 
 
 
-###### *method* `Dataway.writePoint(data, callback)`
+###### *method* `DataWay.writePoint(data, callback)`
 
 写入数据点
 
@@ -142,7 +142,7 @@ routes_config:
 
 
 
-###### *method* `Dataway.writePoints(points)`
+###### *method* `DataWay.writePoints(points, callback)`
 
 写入多个数据点
 
@@ -162,7 +162,7 @@ routes_config:
 
 
 
-###### *method* `Dataway.writeKeyevent(data)`
+###### *method* `DataWay.writeKeyevent(data, callback)`
 
 写入关键事件
 
@@ -183,7 +183,7 @@ routes_config:
 
 
 
-###### *method* `Dataway.writeKeyevents(keyevents)`
+###### *method* `DataWay.writeKeyevents(keyevents, callback)`
 
 写入多个关键事件
 
@@ -205,14 +205,14 @@ routes_config:
 
 
 
-###### *method* `Dataway.writeFlow(data)`
+###### *method* `DataWay.writeFlow(data, callback)`
 
 写入流程行为
 
 |        参数       |    类型    |  是否必须  |   默认值    |                                 说明                                |
 |-------------------|------------|------------|-------------|---------------------------------------------------------------------|
 | `data`            | `JSON`     | 必须       |             | 流程行为                                                            |
-| `data.app`        | `String`   | 必须       |             | 应用名                                                                |
+| `data.app`        | `String`   | 必须       |             | 应用名                                                              |
 | `data.traceId`    | `String`   | 必须       |             | 标示一个流程单的唯一ID                                              |
 | `data.name`       | `String`   | 必须       |             | 节点名称                                                            |
 | `data.timestamp`  | `Number`   | 必须       |             | 时间戳，支持秒/毫秒/微秒/纳秒。SDK会判断并自动转换为纳秒            |
@@ -231,7 +231,7 @@ routes_config:
 
 
 
-###### *method* `Dataway.writeFlows(flows)`
+###### *method* `DataWay.writeFlows(flows, callback)`
 
 写入多个流程行为
 
@@ -249,6 +249,64 @@ routes_config:
 | `flows[#].tags`       | `JSON`     | 可选       | `undefined` | 额外标签。键名和键值必须都为字符串                                  |
 | `flows[#].fields`     | `JSON`     | 可选       | `undefined` | 额外指标。键名必须为字符串，键值可以为字符串/整数/浮点数/布尔值之一 |
 | `callback`            | `Function` | 可选       | `undefined` | 回调函数 `function(err, ret)`                                       |
+
+
+
+---
+
+
+
+###### *method* `DataWay.write_alert(data, callback)`
+
+写入告警
+
+|         参数         |           类型           |  是否必须  |   默认值    |                           说明                           |
+|----------------------|--------------------------|------------|-------------|----------------------------------------------------------|
+| `data.level`         | `String`                 | 必须       |             | `"critical"` / `"warning"` / `"info"` / `"ok"` 之一      |
+| `data.alertId`       | `String`                 | 必须       |             | 告警ID                                                   |
+| `data.checkValue`    | `JSON` / `String` (JSON) | 必须       |             | 检测值JSON或JSON字符串                                   |
+| `data.timestamp`     | `Number`                 | 必须       |             | 时间戳，支持秒/毫秒/微秒/纳秒。SDK会判断并自动转换为纳秒 |
+| `data.duration`      | `Integer`                | 必须二选一 |             | 在当前节点滞留时间或持续时间（秒）                       |
+| `data.durationMs`    | `Integer`                | 必须二选一 |             | 在当前节点滞留时间或持续时间（毫秒）                     |
+| `data.ruleId`        | `String`                 | 可选       |             | 规则ID                                                   |
+| `data.ruleName`      | `String`                 | 可选       |             | 规则名                                                   |
+| `data.noData`        | `Boolean`                | 可选       |             | 是否为无数据告警                                         |
+| `data.actionType`    | `String`                 | 可选       |             | 动作类型                                                 |
+| `data.actionContent` | `JSON` / `String` (JSON) | 可选       |             | 动作数据JSON或JSON字符串                                 |
+| `data.alertItemTags` | `JSON`                   | 可选       | `undefined` | 告警对象标签。键名和键值必须都为字符串                   |
+| `data.tags`          | `JSON`                   | 可选       | `undefined` | 额外标签。键名和键值必须都为字符串                       |
+| `callback`           | `Function`               | 可选       | `undefined` | 回调函数 `function(err, ret)`                            |
+
+`data.duration`和`data.durationMs`两者必须填一个
+
+
+
+---
+
+
+
+###### *method* `DataWay.write_alerts(alerts, callback)`
+
+写入多个告警
+
+|           参数           |           类型           |  是否必须  |   默认值    |                           说明                           |
+|--------------------------|--------------------------|------------|-------------|----------------------------------------------------------|
+| `alert`                  | `Array`                  | 必须       |             | 告警列表                                                 |
+| `alert[#]`               | `JSON`                   | 必须       |             | 告警                                                     |
+| `alert[#].level`         | `String`                 | 必须       |             | `"critical"` / `"warning"` / `"info"` / `"ok"` 之一      |
+| `alert[#].alertId`       | `String`                 | 必须       |             | 告警ID                                                   |
+| `alert[#].checkValue`    | `JSON` / `String` (JSON) | 必须       |             | 检测值JSON或JSON字符串                                   |
+| `alert[#].timestamp`     | `Number`                 | 必须       |             | 时间戳，支持秒/毫秒/微秒/纳秒。SDK会判断并自动转换为纳秒 |
+| `alert[#].duration`      | `Integer`                | 必须二选一 |             | 在当前节点滞留时间或持续时间（秒）                       |
+| `alert[#].durationMs`    | `Integer`                | 必须二选一 |             | 在当前节点滞留时间或持续时间（毫秒）                     |
+| `alert[#].ruleId`        | `String`                 | 可选       |             | 规则ID                                                   |
+| `alert[#].ruleName`      | `String`                 | 可选       |             | 规则名                                                   |
+| `alert[#].noData`        | `Boolean`                | 可选       |             | 是否为无数据告警                                         |
+| `alert[#].actionType`    | `String`                 | 可选       |             | 动作类型                                                 |
+| `alert[#].actionContent` | `JSON` / `String` (JSON) | 可选       |             | 动作数据JSON或JSON字符串                                 |
+| `alert[#].alertItemTags` | `JSON`                   | 可选       | `undefined` | 告警对象标签。键名和键值必须都为字符串                   |
+| `alert[#].tags`          | `JSON`                   | 可选       | `undefined` | 额外标签。键名和键值必须都为字符串                       |
+| `callback`               | `Function`               | 可选       | `undefined` | 回调函数 `function(err, ret)`                            |
 
 ## 声明
 
