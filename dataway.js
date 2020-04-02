@@ -1418,7 +1418,7 @@
   var RE_ESCAPE_TAG_VALUE       = RE_ESCAPE_TAG_KEY;
   var RE_ESCAPE_FIELD_KEY       = RE_ESCAPE_TAG_KEY;
   var RE_ESCAPE_MEASUREMENT     = /([, ])/g;
-  var RE_ESCAPE_FIELD_STR_VALUE = /(["])/g;
+  var RE_ESCAPE_FIELD_STR_VALUE = /(["\\])/g;
 
   var ALERT_LEVELS = ['critical', 'warning', 'info', 'ok'];
 
