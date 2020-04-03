@@ -90,6 +90,7 @@ DataWay class
 | `protocol`              | `String`          | Optional | `"http"`              | DataWay protocol. `"http"`/`"https"`                                                  |
 | `path`                  | `String`          | Optional | `"/v1/write/metrics"` | DataWay report path                                                                   |
 | `token`                 | `String`          | Optional | `null`                | DataFlux Workspace Token                                                              |
+| `rp`                    | `String`          | Optional | `null`                | Target `retention policy`                                                             |
 | `accessKey`/`secretKey` | `String`/`String` | Optional | `null`/`null`         | DataWay AccessKey and SecretKey for authorization                                     |
 | `debug`                 | `Boolean`         | Optional | `false`               | Print detailed debug info or not                                                      |
 

@@ -1589,6 +1589,7 @@
     this.protocol  = options.protocol || 'http';
     this.path      = options.path || '/v1/write/metrics';
     this.token     = options.token;
+    this.rp        = options.rp || null;
     this.accessKey = options.accessKey;
     this.secretKey = options.secretKey;
     this.debug     = options.debug || false;
@@ -1780,7 +1781,11 @@
     var self = this;
 
     var xhr = new XMLHttpRequest();
-    xhr.open(self.METHOD, strf('{0}://{1}:{2}{3}?token={4}', self.protocol, self.host, self.port, self.path, self.token));
+    var url = strf('{0}://{1}:{2}{3}?token={4}', self.protocol, self.host, self.port, self.path, self.token)
+    if (self.rp) {
+      url += strf('&rp={0}', self.rp);
+    }
+    xhr.open(self.METHOD, url);
 
     if (headers) {
       for (var k in headers) if (headers.hasOwnProperty(k)) {
@@ -1814,11 +1819,16 @@
   DataWay.prototype._sendPoints_node = function(body, headers, callback) {
     var self = this;
 
+    var url = self.path + strf('?token={0}', self.token);
+    if (self.rp) {
+      url += strf('&rp={0}', self.rp);
+    }
+
     // Do HTTP/HTTPS
     var requestOptions = {
       host   : self.host,
       port   : self.port,
-      path   : self.path + strf('?token={0}', self.token),
+      path   : url,
       method : self.METHOD,
       headers: headers,
       timeout: 3 * 1000,
