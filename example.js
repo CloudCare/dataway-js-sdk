@@ -93,7 +93,7 @@ var alerts = [
     'ruleId'       : 'RULE-001',
     'ruleName'     : 'R1',
     'noData'       : true,
-    'duration'     : 10,
+    'duration'     : 0,
     'checkValue'   : {'M1': 90, 'M2': 90},
     'actionType'   : 'mail',
     'actionContent': {'to': 'someone@somemail.com', 'title': 'Test Alert Title', 'content': 'Test Alert Value'},

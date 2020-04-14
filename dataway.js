@@ -1728,7 +1728,6 @@
         var keyList = Object.keys(fields).sort();
         keyList.forEach(function(k) {
           var v = fields[k];
-          if (!v) return;
 
           k = k.replace(RE_ESCAPE_FIELD_KEY, ESCAPE_REPLACER);
           if (isString(v)) {
@@ -2041,21 +2040,21 @@
 
     // Tags.$duration
     var durationMs = flow.durationMs;
-    if (durationMs) {
+    if ('number' === typeof durationMs) {
       assertInt(durationMs, 'durationMs')
     }
 
     var duration = flow.duration;
-    if (duration) {
+    if ('number' === typeof duration) {
       assertInt(duration, 'duration')
     }
 
     // to ms
-    if (duration) {
+    if ('number' === typeof duration) {
       duration = duration * 1000;
     }
 
-    if (!durationMs && !duration) {
+    if ('number' !== typeof durationMs && 'number' !== typeof duration) {
       throw new Error('`duration` or `durationMs` is missing');
     }
     fields.$duration = asInt(durationMs || duration);
@@ -2147,21 +2146,21 @@
 
     // Tags.$duration
     var durationMs = alert.durationMs;
-    if (durationMs) {
+    if ('number' === typeof durationMs) {
       assertInt(durationMs, 'durationMs')
     }
 
     var duration = alert.duration;
-    if (duration) {
+    if ('number' === typeof duration) {
       assertInt(duration, 'duration')
     }
 
     // to ms
-    if (duration) {
+    if ('number' === typeof duration) {
       duration = duration * 1000;
     }
 
-    if (!durationMs && !duration) {
+    if ('number' !== typeof durationMs && 'number' !== typeof duration) {
       throw new Error('`duration` or `durationMs` is missing');
     }
     fields.$duration = asInt(durationMs || duration);
