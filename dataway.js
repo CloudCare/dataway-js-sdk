@@ -1607,7 +1607,7 @@
 
       this.protocol = parsedURL.protocol.replace(/\:$/g, '');
 
-      if (parsedURL.pathname) {
+      if (parsedURL.pathname && parsedURL.pathname !== '/') {
         this.path = parsedURL.pathname;
       }
       if (parsedURL.search) {
