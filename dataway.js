@@ -1728,6 +1728,7 @@
         var keyList = Object.keys(fields).sort();
         keyList.forEach(function(k) {
           var v = fields[k];
+          if ('undefined' === typeof v || v === null) return;
 
           k = k.replace(RE_ESCAPE_FIELD_KEY, ESCAPE_REPLACER);
           if (isString(v)) {
@@ -1763,10 +1764,6 @@
 
   DataWay.prototype._sendPoints = function(points, callback) {
     var body = this._prepareBody(points);
-    if (this.debug) {
-      console.log(strf('[Request Body]\n{0}', body))
-    }
-
     var headers = this._prepareHeaders(body);
 
     if (isBrowser) {
@@ -1784,6 +1781,11 @@
     if (self.rp) {
       url += strf('&rp={0}', self.rp);
     }
+    if (this.debug) {
+      console.log(strf('[Request URL]\n{0}', url));
+      console.log(strf('[Request Body]\n{0}', body));
+    }
+
     xhr.open(self.METHOD, url);
 
     if (headers) {
@@ -1821,6 +1823,10 @@
     var url = self.path + strf('?token={0}', self.token);
     if (self.rp) {
       url += strf('&rp={0}', self.rp);
+    }
+    if (this.debug) {
+      console.log(strf('[Request URL]\n{0}://{1}:{2}{3}', self.protocol, self.host, self.port, url));
+      console.log(strf('[Request Body]\n{0}', body));
     }
 
     // Do HTTP/HTTPS
