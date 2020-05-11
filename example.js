@@ -12,7 +12,7 @@ var dw = new dataway.DataWay({
   protocol: 'https',
   host    : 'openway.dataflux.cn',
   port    : 443,
-  token   : 'YOUR_DATAWAY_TOKEN',
+  token   : null,
   rp      : 'rp0',
 });
 

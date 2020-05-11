@@ -1624,10 +1624,6 @@
         this.port = this.protocol === 'https' ? 443 : 80;
       }
     }
-
-    if (!this.token) {
-      throw new Error('`token` is required');
-    }
   }
 
   DataWay.prototype._toNsString = function(timestamp) {
@@ -1777,10 +1773,20 @@
     var self = this;
 
     var xhr = new XMLHttpRequest();
-    var url = strf('{0}://{1}:{2}{3}?token={4}', self.protocol, self.host, self.port, self.path, self.token)
-    if (self.rp) {
-      url += strf('&rp={0}', self.rp);
+
+    var queryItems = [];
+    if (self.token) {
+      queryItems.push('token=' + self.token);
     }
+    if (self.rp) {
+      queryItems.push('rp=' + self.rp);
+    }
+
+    var url = strf('{0}://{1}:{2}{3}', self.protocol, self.host, self.port, self.path)
+    if (queryItems.length > 0) {
+      url += '?' + queryItems.join('&');
+    }
+
     if (this.debug) {
       console.log(strf('[Request URL]\n{0}', url));
       console.log(strf('[Request Body]\n{0}', body));
@@ -1820,10 +1826,19 @@
   DataWay.prototype._sendPoints_node = function(body, headers, callback) {
     var self = this;
 
-    var url = self.path + strf('?token={0}', self.token);
-    if (self.rp) {
-      url += strf('&rp={0}', self.rp);
+    var queryItems = [];
+    if (self.token) {
+      queryItems.push('token=' + self.token);
     }
+    if (self.rp) {
+      queryItems.push('rp=' + self.rp);
+    }
+
+    var url = strf('{0}://{1}:{2}{3}', self.protocol, self.host, self.port, self.path)
+    if (queryItems.length > 0) {
+      url += '?' + queryItems.join('&');
+    }
+
     if (this.debug) {
       console.log(strf('[Request URL]\n{0}://{1}:{2}{3}', self.protocol, self.host, self.port, url));
       console.log(strf('[Request Body]\n{0}', body));

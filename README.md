@@ -90,7 +90,7 @@ DataWay 类
 | `port`                  | `Integer`         | 可选     | `9528`                | DataWay 主机端口                                                              |
 | `protocol`              | `String`          | 可选     | `"http"`              | DataWay 访问协议。`"http"`/`"https"`                                          |
 | `path`                  | `String`          | 可选     | `"/v1/write/metrics"` | DataWay 数据上报路径                                                          |
-| `token`                 | `String`          | 可选     | `null`                | DataFlux 工作空间上报Token                                                    |
+| `token`                 | `String`          | 可选     | `null`                | DataFlux 工作空间上报Token。只有OpenWay和内部DataWay需要填写                  |
 | `rp`                    | `String`          | 可选     | `null`                | 写入目标`retention policy`                                                    |
 | `accessKey`/`secretKey` | `String`/`String` | 可选     | `null`/`null`         | DataWay 认证用 AccessKey 和 SecretKey                                         |
 | `debug`                 | `Boolean`         | 可选     | `False`               | 是否打印详细调试信息                                                          |
