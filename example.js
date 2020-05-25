@@ -40,29 +40,37 @@ var points = [
     'fields'     : {'F1': 'A'},
   },
   {
-      'measurement': '中文指标名',
-      'tags'       : {'中文标签': '中文标签值'},
-      'fields'     : {'中文字段': '中文字段值'},
+    'measurement': '中文指标名',
+    'tags'       : {'中文标签': '中文标签值'},
+    'fields'     : {'中文字段': '中文字段值'},
   },
   {
-      'measurement': '中文指标名2',
-      'tags'       : {'中文标签2': '中文标签值2'},
-      'fields'     : {'中文字段2': '中文字段值2'},
+    'measurement': '中文指标名2',
+    'tags'       : {'中文标签2': '中文标签值2'},
+    'fields'     : {'中文字段2': '中文字段值2'},
   },
 ];
 
 var keyevents = [
   {
     'title'    : 'T1',
-    'des'      : 'D1',
-    'link'     : 'http://link',
-    'source'   : 'S1',
-    'tags'     : {'T1': 'X'},
     'timestamp': 1577808000,
   },
   {
-    'title'    : 'T1',
-    'timestamp': 1577808001,
+    'title'        : 'T2',
+    'eventId'      : 'event-001',
+    'source'       : 'SRC1',
+    'status'       : 'info',
+    'ruleId'       : 'rule-001',
+    'ruleName'     : 'R1',
+    'type'         : 'TYPE-1',
+    'alertItemTags': {'AT1': 'X', 'AT2': 'Y'},
+    'actionType'   : 'A1',
+    'content'      : 'C1',
+    'duration'     : 10,
+    'tags'         : {'T1': 'X', 'T2': 'Y'},
+    'fields'       : {'F1': 'A', 'F2': 'B'},
+    'timestamp'    : 1577808001,
   },
 ];
 
@@ -83,37 +91,6 @@ var flows = [
     'name'      : 'N1',
     'durationMs': 10000,
     'timestamp' : 1577808001,
-  },
-];
-
-var alerts = [
-  {
-    'level'        : 'critical',
-    'alertId'      : 'ALERT-001',
-    'ruleId'       : 'RULE-001',
-    'ruleName'     : 'R1',
-    'noData'       : true,
-    'duration'     : 0,
-    'checkValue'   : {'M1': 90, 'M2': 90},
-    'actionType'   : 'mail',
-    'actionContent': {'to': 'someone@somemail.com', 'title': 'Test Alert Title', 'content': 'Test Alert Value'},
-    'alertItemTags': {'T1': 'X', 'T2': 'Y'},
-    'tags'         : {'T1': 'X'},
-    'timestamp'    : 1577808000,
-  },
-  {
-    'level'        : 'ok',
-    'alertId'      : 'ALERT-001',
-    'ruleId'       : 'RULE-001',
-    'ruleName'     : 'R1',
-    'noData'       : false,
-    'durationMs'   : 10000,
-    'checkValue'   : {'M1': 10, 'M2': 10},
-    'actionType'   : 'mail',
-    'actionContent': {'to': 'someone@somemail.com', 'title': 'Test Alert Title', 'content': 'Test Alert Value'},
-    'alertItemTags': {'T1': 'X', 'T2': 'Y'},
-    'tags'         : {'T1': 'X'},
-    'timestamp'    : 1577808001,
   },
 ];
 
@@ -139,17 +116,7 @@ dw.writePoint(points[0], function() {
 
           // 6
           printSep('DataWay write flows')
-          dw.writeFlows(flows, function() {
-
-            // 7
-            printSep('DataWay write alert')
-            dw.writeAlert(alerts[0], function() {
-
-              // 8
-              printSep('DataWay write alerts')
-              dw.writeAlerts(alerts);
-            });
-          });
+          dw.writeFlows(flows);
         });
       });
     });

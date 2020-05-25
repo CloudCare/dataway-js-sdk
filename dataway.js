@@ -1420,7 +1420,7 @@
   var RE_ESCAPE_MEASUREMENT     = /([, ])/g;
   var RE_ESCAPE_FIELD_STR_VALUE = /(["\\])/g;
 
-  var ALERT_LEVELS = ['critical', 'warning', 'info', 'ok'];
+  var KEYEVENT_STATUS = ['critical', 'error', 'warning', 'info', 'ok'];
 
   function strf() {
     var args = Array.prototype.slice.call(arguments);
@@ -1964,35 +1964,95 @@
     var tags = keyevent.tags || {};
     assertTags(tags, 'tags')
 
+    // Tags.$eventId
+    var eventId = keyevent.eventId;
+    if (eventId) {
+      tags.$eventId = assertStr(eventId, 'eventId');
+    }
+
     // Tags.$source
     var source = keyevent.source;
     if (source) {
       tags.$source = assertStr(source, 'source');
     }
 
+    // Tags.$status
+    var status = keyevent.status;
+    if (status) {
+      tags.$status = assertEnum(keyevent.status, 'status', KEYEVENT_STATUS);
+    }
+
+    // Tags.$ruleId
+    var ruleId = keyevent.ruleId;
+    if (ruleId) {
+      tags.$ruleId = assertStr(ruleId, 'ruleId');
+    }
+
+    // Tags.$ruleName
+    var ruleName = keyevent.ruleName;
+    if (ruleName) {
+      tags.$ruleName = assertStr(ruleName, 'ruleName');
+    }
+
+    // Tags.$type
+    var type = keyevent.type;
+    if (type) {
+      tags.$type = assertStr(type, 'type');
+    }
+
+    // Tags.$alertItem_*
+    var alertItemTags = keyevent.alertItemTags;
+    if (alertItemTags) {
+      assertTags(alertItemTags, 'alertItemTags');
+
+      for (var k in alertItemTags) if (alertItemTags.hasOwnProperty(k)) {
+        tags['$alertItem_' + k] = alertItemTags[k];
+      }
+    }
+
+    // Tags.$actionType
+    var actionType = keyevent.actionType;
+    if (actionType) {
+      tags.$actionType = assertStr(actionType, 'actionType');
+    }
+
     // Check Fields
-    var fields = {};
+    var fields = keyevent.fields || {};
+    assertTags(fields, 'fields')
 
     // Fields.$title
     fields.$title = assertStr(keyevent.title, 'title');
 
-    // Fields.$des
-    var des = keyevent.des;
-    if (des) {
-      fields.$des = assertStr(des, 'des');
+    // Fields.$content
+    var content = keyevent.content;
+    if (content) {
+      fields.$content = assertStr(content, 'content');
     }
 
-    // Fields.$link
-    var link = keyevent.link;
-    if (link) {
-      assertStr(link, 'link')
+    // Fields.$suggestion
+    var suggestion = keyevent.suggestion;
+    if (suggestion) {
+      fields.$suggestion = assertStr(suggestion, 'suggestion');
+    }
 
-      if (link.toLowerCase().indexOf('http://') < 0 && link.toLowerCase().indexOf('https://') < 0
-            || link.slice(-3) === '://') {
-        throw new Error('`link` should be a valid URL with protocol');
-      }
+    // Fields.$duration
+    var durationMs = keyevent.durationMs;
+    if ('number' === typeof durationMs) {
+      assertInt(durationMs, 'durationMs')
+    }
 
-      fields.$link = link;
+    var duration = keyevent.duration;
+    if ('number' === typeof duration) {
+      assertInt(duration, 'duration')
+    }
+
+    // to ms
+    if ('number' === typeof duration) {
+      duration = duration * 1000;
+    }
+
+    if ('number' === typeof durationMs || 'number' === typeof duration) {
+      fields.$duration = asInt(durationMs || duration);
     }
 
     var point = {
@@ -2006,12 +2066,21 @@
 
   DataWay.prototype.writeKeyevent = function(data, callback) {
     var keyevent = {
-        title    : data.title,
-        des      : data.des,
-        link     : data.link,
-        source   : data.source,
-        tags     : data.tags,
-        timestamp: data.timestamp,
+      title        : data.title,
+      eventId      : data.eventId,
+      source       : data.source,
+      status       : data.status,
+      ruleId       : data.ruleId,
+      ruleName     : data.ruleName,
+      type         : data.type,
+      alertItemTags: data.alertItemTags,
+      actionType   : data.actionType,
+      content      : data.content,
+      duration     : data.duration,
+      durationMs   : data.durationMs,
+      tags         : data.tags,
+      fields       : data.fields,
+      timestamp    : data.timestamp,
     }
     var preparedPoint = this._prepareKeyevent(keyevent);
     this._sendPoints(preparedPoint, callback);
@@ -2115,131 +2184,6 @@
     var preparedPoints = [];
     flows.forEach(function(d) {
       preparedPoints.push(self._prepareFlow(d));
-    })
-
-    self._sendPoints(preparedPoints, callback);
-  };
-
-  // $alert
-  DataWay.prototype._prepareAlert = function(alert) {
-    assertJSON(alert, 'alert');
-
-    // Check Tags
-    var tags = alert.tags || {};
-    assertTags(tags, 'tags')
-
-    // Tags.$level
-    tags.$level = assertEnum(alert.level, 'level', ALERT_LEVELS);
-
-    // Tags.$alertId
-    tags.$alertId = assertStr(alert.alertId, 'alertId');
-
-    // Tags.$ruleId
-    var ruleId = alert.ruleId;
-    if (ruleId) {
-      tags.$ruleId = assertStr(ruleId, 'ruleId');
-    }
-
-    // Tags.$noData
-    var noData = alert.noData;
-    if (noData) {
-      tags.$noData = 'noData';
-    }
-
-    // Tags.$alertItem_*
-    var alertItemTags = alert.alertItemTags;
-    if (alertItemTags) {
-      assertTags(alertItemTags, 'alertItemTags');
-
-      for (var k in alertItemTags) if (alertItemTags.hasOwnProperty(k)) {
-        tags['$alertItem_' + k] = alertItemTags[k];
-      }
-    }
-
-    // Tags.$actionType
-    var actionType = alert.actionType;
-    if (actionType) {
-      tags.$actionType = assertStr(actionType, 'actionType');
-    }
-
-    // Check Fields
-    var fields = {};
-
-    // Tags.$duration
-    var durationMs = alert.durationMs;
-    if ('number' === typeof durationMs) {
-      assertInt(durationMs, 'durationMs')
-    }
-
-    var duration = alert.duration;
-    if ('number' === typeof duration) {
-      assertInt(duration, 'duration')
-    }
-
-    // to ms
-    if ('number' === typeof duration) {
-      duration = duration * 1000;
-    }
-
-    if ('number' !== typeof durationMs && 'number' !== typeof duration) {
-      throw new Error('`duration` or `durationMs` is missing');
-    }
-    fields.$duration = asInt(durationMs || duration);
-
-    // Fields.$checkValueJSON
-    fields.$checkValueJSON = assertJSONStr(alert.checkValue, 'checkValue');
-
-    // Fields.$ruleName
-    var ruleName = alert.ruleName;
-    if (ruleName) {
-      fields.$ruleName = assertStr(ruleName, 'ruleName');
-    }
-
-    // Fields.$actionContentJSON
-    var actionContent = alert.actionContent;
-    if (actionContent) {
-      fields.$actionContentJSON = assertJSONStr(actionContent, 'checkValue');
-    }
-
-    var point = {
-        measurement: '$alert',
-        tags       : tags,
-        fields     : fields,
-        timestamp  : alert.timestamp,
-    }
-    return this._preparePoint(point)
-  };
-
-  DataWay.prototype.writeAlert = function(data, callback) {
-    var alert = {
-      level        : data.level,
-      alertId      : data.alertId,
-      ruleId       : data.ruleId,
-      ruleName     : data.ruleName,
-      noData       : data.noData,
-      duration     : data.duration,
-      durationMs   : data.durationMs,
-      checkValue   : data.checkValue,
-      actionType   : data.actionType,
-      actionContent: data.actionContent,
-      alertItemTags: data.alertItemTags,
-      tags         : data.tags,
-      timestamp    : data.timestamp,
-    }
-    var preparedPoint = this._prepareAlert(alert);
-    this._sendPoints(preparedPoint, callback);
-  };
-
-  DataWay.prototype.writeAlerts = function(alerts, callback) {
-    var self = this;
-
-    if (!Array.isArray(alerts)) {
-      throw new Error('`alerts` should be an array');
-    }
-
-    var preparedPoints = [];
-    alerts.forEach(function(d) {
-      preparedPoints.push(self._prepareAlert(d));
     })
 
     self._sendPoints(preparedPoints, callback);

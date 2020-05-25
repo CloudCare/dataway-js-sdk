@@ -167,16 +167,24 @@ routes_config:
 
 写入关键事件
 
-|       参数       |    类型    | 是否必须 |   默认值    |                             说明                             |
-|------------------|------------|----------|-------------|--------------------------------------------------------------|
-| `data`           | `JSON`     | 必须     |             | 关键事件                                                     |
-| `data.title`     | `String`   | 必须     |             | 标题                                                         |
-| `data.timestamp` | `Number`   | 必须     |             | 时间戳，支持秒/毫秒/微秒/纳秒。SDK会判断并自动转换为纳秒     |
-| `data.des`       | `String`   | 可选     | `undefined` | 描述                                                         |
-| `data.link`      | `String`   | 可选     | `undefined` | 关联的完整外部链接地址，如：`"http://some-domain/some-path"` |
-| `data.source`    | `String`   | 可选     | `undefined` | 来源                                                         |
-| `data.tags`      | `JSON`     | 可选     | `undefined` | 额外的标签。键名和键值必须都为字符串                         |
-| `callback`       | `Function` | 可选     | `undefined` | 回调函数 `function(err, ret)`                                |
+|          参数          |    类型    |  是否必须  |   默认值    |                               说明                              |
+|------------------------|------------|------------|-------------|-----------------------------------------------------------------|
+| `data.title`           | `String`   | 必须       |             | 标题                                                            |
+| `data.timestamp`       | `Number`   | 必须       |             | 时间戳，支持秒/毫秒/微秒/纳秒。SDK会判断并自动转换为纳秒        |
+| `data.duration`        | `Integer`  | 必须二选一 |             | 在当前节点滞留时间或持续时间（秒）                              |
+| `data.duration_ms`     | `Integer`  | 必须二选一 |             | 在当前节点滞留时间或持续时间（毫秒）                            |
+| `data.event_id`        | `String`   | 可选       | `undefined` | 事件ID                                                          |
+| `data.source`          | `String`   | 可选       | `undefined` | 来源                                                            |
+| `data.status`          | `String`   | 可选       | `undefined` | "critical" / "error" / "warning" / "info" / "ok" 之一           |
+| `data.rule_id`         | `String`   | 可选       | `undefined` | 规则ID                                                          |
+| `data.rule_name`       | `String`   | 可选       | `undefined` | 规则名称                                                        |
+| `data.type_`           | `String`   | 可选       | `undefined` | 类型                                                            |
+| `data.alert_item_tags` | `String`   | 可选       | `undefined` | 告警对象标签。键名和键值必须都为字符串                          |
+| `data.action_type`     | `String`   | 可选       | `undefined` | 动作类型                                                        |
+| `data.content`         | `String`   | 可选       | `undefined` | 内容                                                            |
+| `data.tags`            | `JSON`     | 可选       | `undefined` | 标签。键名和键值必须都为字符串                                  |
+| `data.fields`          | `JSON`     | 可选       | `undefined` | 指标。键名必须为字符串，键值可以为字符串/整数/浮点数/布尔值之一 |
+| `callback`             | `Function` | 可选       | `undefined` | 回调函数 `function(err, ret)`                                   |
 
 
 
@@ -188,17 +196,26 @@ routes_config:
 
 写入多个关键事件
 
-|           参数           |    类型    | 是否必须 |   默认值    |                             说明                             |
-|--------------------------|------------|----------|-------------|--------------------------------------------------------------|
-| `keyevents`              | `Array`    | 必须     |             | 关键事件列表                                                 |
-| `keyevents[#]`           | `JSON`     | 必须     |             | 关键事件                                                     |
-| `keyevents[#].title`     | `String`   | 必须     |             | 标题                                                         |
-| `keyevents[#].timestamp` | `Number`   | 必须     |             | 时间戳，支持秒/毫秒/微秒/纳秒。SDK会判断并自动转换为纳秒     |
-| `keyevents[#].des`       | `String`   | 可选     | `undefined` | 描述                                                         |
-| `keyevents[#].link`      | `String`   | 可选     | `undefined` | 关联的完整外部链接地址，如：`"http://some-domain/some-path"` |
-| `keyevents[#].source`    | `String`   | 可选     | `undefined` | 来源                                                         |
-| `keyevents[#].tags`      | `JSON`     | 可选     | `undefined` | 额外的标签。键名和键值必须都为字符串                         |
-| `callback`               | `Function` | 可选     | `undefined` | 回调函数 `function(err, ret)`                                |
+|              参数             |    类型    |  是否必须  |   默认值    |                               说明                              |
+|-------------------------------|------------|------------|-------------|-----------------------------------------------------------------|
+| `keyevents`                   | `Array`    | 必须       |             | 关键事件列表                                                    |
+| `keyevents[#]`                | `JSON`     | 必须       |             | 关键事件                                                        |
+| `keyevents[#]title`           | `String`   | 必须       |             | 标题                                                            |
+| `keyevents[#]timestamp`       | `Number`   | 必须       |             | 时间戳，支持秒/毫秒/微秒/纳秒。SDK会判断并自动转换为纳秒        |
+| `keyevents[#]duration`        | `Integer`  | 必须二选一 |             | 在当前节点滞留时间或持续时间（秒）                              |
+| `keyevents[#]duration_ms`     | `Integer`  | 必须二选一 |             | 在当前节点滞留时间或持续时间（毫秒）                            |
+| `keyevents[#]event_id`        | `String`   | 可选       | `undefined` | 事件ID                                                          |
+| `keyevents[#]source`          | `String`   | 可选       | `undefined` | 来源                                                            |
+| `keyevents[#]status`          | `String`   | 可选       | `undefined` | "critical" / "error" / "warning" / "info" / "ok" 之一           |
+| `keyevents[#]rule_id`         | `String`   | 可选       | `undefined` | 规则ID                                                          |
+| `keyevents[#]rule_name`       | `String`   | 可选       | `undefined` | 规则名称                                                        |
+| `keyevents[#]type_`           | `String`   | 可选       | `undefined` | 类型                                                            |
+| `keyevents[#]alert_item_tags` | `String`   | 可选       | `undefined` | 告警对象标签。键名和键值必须都为字符串                          |
+| `keyevents[#]action_type`     | `String`   | 可选       | `undefined` | 动作类型                                                        |
+| `keyevents[#]content`         | `String`   | 可选       | `undefined` | 内容                                                            |
+| `keyevents[#]tags`            | `JSON`     | 可选       | `undefined` | 标签。键名和键值必须都为字符串                                  |
+| `keyevents[#]fields`          | `JSON`     | 可选       | `undefined` | 指标。键名必须为字符串，键值可以为字符串/整数/浮点数/布尔值之一 |
+| `callback`                    | `Function` | 可选       | `undefined` | 回调函数 `function(err, ret)`                                   |
 
 
 
@@ -250,64 +267,6 @@ routes_config:
 | `flows[#].tags`       | `JSON`     | 可选       | `undefined` | 额外标签。键名和键值必须都为字符串                                  |
 | `flows[#].fields`     | `JSON`     | 可选       | `undefined` | 额外指标。键名必须为字符串，键值可以为字符串/整数/浮点数/布尔值之一 |
 | `callback`            | `Function` | 可选       | `undefined` | 回调函数 `function(err, ret)`                                       |
-
-
-
----
-
-
-
-###### *method* `DataWay.write_alert(data, callback)`
-
-写入告警
-
-|         参数         |           类型           |  是否必须  |   默认值    |                           说明                           |
-|----------------------|--------------------------|------------|-------------|----------------------------------------------------------|
-| `data.level`         | `String`                 | 必须       |             | `"critical"` / `"warning"` / `"info"` / `"ok"` 之一      |
-| `data.alertId`       | `String`                 | 必须       |             | 告警ID                                                   |
-| `data.checkValue`    | `JSON` / `String` (JSON) | 必须       |             | 检测值JSON或JSON字符串                                   |
-| `data.timestamp`     | `Number`                 | 必须       |             | 时间戳，支持秒/毫秒/微秒/纳秒。SDK会判断并自动转换为纳秒 |
-| `data.duration`      | `Integer`                | 必须二选一 |             | 在当前节点滞留时间或持续时间（秒）                       |
-| `data.durationMs`    | `Integer`                | 必须二选一 |             | 在当前节点滞留时间或持续时间（毫秒）                     |
-| `data.ruleId`        | `String`                 | 可选       |             | 规则ID                                                   |
-| `data.ruleName`      | `String`                 | 可选       |             | 规则名                                                   |
-| `data.noData`        | `Boolean`                | 可选       |             | 是否为无数据告警                                         |
-| `data.actionType`    | `String`                 | 可选       |             | 动作类型                                                 |
-| `data.actionContent` | `JSON` / `String` (JSON) | 可选       |             | 动作数据JSON或JSON字符串                                 |
-| `data.alertItemTags` | `JSON`                   | 可选       | `undefined` | 告警对象标签。键名和键值必须都为字符串                   |
-| `data.tags`          | `JSON`                   | 可选       | `undefined` | 额外标签。键名和键值必须都为字符串                       |
-| `callback`           | `Function`               | 可选       | `undefined` | 回调函数 `function(err, ret)`                            |
-
-`data.duration`和`data.durationMs`两者必须填一个
-
-
-
----
-
-
-
-###### *method* `DataWay.write_alerts(alerts, callback)`
-
-写入多个告警
-
-|           参数           |           类型           |  是否必须  |   默认值    |                           说明                           |
-|--------------------------|--------------------------|------------|-------------|----------------------------------------------------------|
-| `alert`                  | `Array`                  | 必须       |             | 告警列表                                                 |
-| `alert[#]`               | `JSON`                   | 必须       |             | 告警                                                     |
-| `alert[#].level`         | `String`                 | 必须       |             | `"critical"` / `"warning"` / `"info"` / `"ok"` 之一      |
-| `alert[#].alertId`       | `String`                 | 必须       |             | 告警ID                                                   |
-| `alert[#].checkValue`    | `JSON` / `String` (JSON) | 必须       |             | 检测值JSON或JSON字符串                                   |
-| `alert[#].timestamp`     | `Number`                 | 必须       |             | 时间戳，支持秒/毫秒/微秒/纳秒。SDK会判断并自动转换为纳秒 |
-| `alert[#].duration`      | `Integer`                | 必须二选一 |             | 在当前节点滞留时间或持续时间（秒）                       |
-| `alert[#].durationMs`    | `Integer`                | 必须二选一 |             | 在当前节点滞留时间或持续时间（毫秒）                     |
-| `alert[#].ruleId`        | `String`                 | 可选       |             | 规则ID                                                   |
-| `alert[#].ruleName`      | `String`                 | 可选       |             | 规则名                                                   |
-| `alert[#].noData`        | `Boolean`                | 可选       |             | 是否为无数据告警                                         |
-| `alert[#].actionType`    | `String`                 | 可选       |             | 动作类型                                                 |
-| `alert[#].actionContent` | `JSON` / `String` (JSON) | 可选       |             | 动作数据JSON或JSON字符串                                 |
-| `alert[#].alertItemTags` | `JSON`                   | 可选       | `undefined` | 告警对象标签。键名和键值必须都为字符串                   |
-| `alert[#].tags`          | `JSON`                   | 可选       | `undefined` | 额外标签。键名和键值必须都为字符串                       |
-| `callback`               | `Function`               | 可选       | `undefined` | 回调函数 `function(err, ret)`                            |
 
 ## 声明
 

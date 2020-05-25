@@ -166,16 +166,24 @@ Write many points
 
 Write a key event
 
-|    Parameter     |    Type    | Required | Default Value |                                                    Description                                                     |
-|------------------|------------|----------|---------------|--------------------------------------------------------------------------------------------------------------------|
-| `data`           | `JSON`     | Required |               | keyevent data                                                                                                      |
-| `data.title`     | `String`   | Required |               | title                                                                                                              |
-| `data.timestamp` | `Number`   | Required |               | event timestamp, Support second/millisecond/microsecond/nanosecond. SDK will detect and auto convert to nanosecond |
-| `data.des`       | `String`   | Optional | `undefined`   | description                                                                                                        |
-| `data.link`      | `String`   | Optional | `undefined`   | related external link, e.g. `"http://some-domain/some-path"`                                                       |
-| `data.source`    | `String`   | Optional | `undefined`   | source                                                                                                             |
-| `data.tags`      | `JSON`     | Optional | `undefined`   | extra tags. Both key and value should be a string                                                                  |
-| `callback`       | `Function` | Optional | `undefined`   | Callback function `function(err, ret)`                                                                             |
+|       Parameter        |    Type    |   Required  |   Default Value   |                                                 Description                                                  |
+|------------------------|------------|-------------|-------------------|--------------------------------------------------------------------------------------------------------------|
+| `data.title`           | `String`   | Required    |                   | title                                                                                                        |
+| `data.timestamp`       | `Number`   | Optional    | Current Timestamp | timestamp, Support second/millisecond/microsecond/nanosecond. SDK will detect and auto convert to nanosecond |
+| `data.duration`        | `Integer`  | Alternative |                   | duration of the flow on the node (second)                                                                    |
+| `data.duration_ms`     | `Integer`  | Alternative |                   | duration of the flow on the node (millisecond)                                                               |
+| `data.event_id`        | `String`   | Optional    | `undefined`       | event ID                                                                                                     |
+| `data.source`          | `String`   | Optional    | `undefined`       | source                                                                                                       |
+| `data.status`          | `String`   | Optional    | `undefined`       | one of "critical" / "error" / "warning" / "info" / "ok"                                                      |
+| `data.rule_id`         | `String`   | Optional    | `undefined`       | rule ID                                                                                                      |
+| `data.rule_name`       | `String`   | Optional    | `undefined`       | rule name                                                                                                    |
+| `data.type_`           | `String`   | Optional    | `undefined`       | type                                                                                                         |
+| `data.alert_item_tags` | `String`   | Optional    | `undefined`       | alert item extra tags. Both key and value should be a string                                                 |
+| `data.action_type`     | `String`   | Optional    | `undefined`       | action type                                                                                                  |
+| `data.content`         | `String`   | Optional    | `undefined`       | content                                                                                                      |
+| `data.tags`            | `JSON`     | Optional    | `undefined`       | tags. Both key and value should be a string                                                                  |
+| `data.fields`          | `JSON`     | Optional    | `undefined`       | fields. Key should be a string, value should be a string/integer/float/boolean value                         |
+| `callback`             | `Function` | Optional    | `undefined`       | Callback function `function(err, ret)`                                                                       |
 
 
 
@@ -187,17 +195,26 @@ Write a key event
 
 Write many key events
 
-|        Parameter         |    Type    | Required | Default Value |                                                    Description                                                     |
-|--------------------------|------------|----------|---------------|--------------------------------------------------------------------------------------------------------------------|
-| `keyevents`              | `Array`    | Required |               | key event list                                                                                                     |
-| `keyevents[#]`           | `JSON`     | Required |               | key event data                                                                                                     |
-| `keyevents[#].title`     | `String`   | Required |               | title                                                                                                              |
-| `keyevents[#].timestamp` | `Number`   | Required |               | event timestamp, Support second/millisecond/microsecond/nanosecond. SDK will detect and auto convert to nanosecond |
-| `keyevents[#].des`       | `String`   | Optional | `undefined`   | description                                                                                                        |
-| `keyevents[#].link`      | `String`   | Optional | `undefined`   | related external link, e.g. `"http://some-domain/some-path"`                                                       |
-| `keyevents[#].source`    | `String`   | Optional | `undefined`   | source                                                                                                             |
-| `keyevents[#].tags`      | `JSON`     | Optional | `undefined`   | extra tags. Both key and value should be a string                                                                  |
-| `callback`               | `Function` | Optional | `undefined`   | Callback function `function(err, ret)`                                                                             |
+|           Parameter           |    Type    |   Required  |   Default Value   |                                                 Description                                                  |
+|-------------------------------|------------|-------------|-------------------|--------------------------------------------------------------------------------------------------------------|
+| `keyevents`                   | `Array`    | Required    |                   | key event list                                                                                               |
+| `keyevents[#]`                | `JSON`     | Required    |                   | key event data                                                                                               |
+| `keyevents[#]title`           | `String`   | Required    |                   | title                                                                                                        |
+| `keyevents[#]timestamp`       | `Number`   | Optional    | Current Timestamp | timestamp, Support second/millisecond/microsecond/nanosecond. SDK will detect and auto convert to nanosecond |
+| `keyevents[#]duration`        | `Integer`  | Alternative |                   | duration of the flow on the node (second)                                                                    |
+| `keyevents[#]duration_ms`     | `Integer`  | Alternative |                   | duration of the flow on the node (millisecond)                                                               |
+| `keyevents[#]event_id`        | `String`   | Optional    | `undefined`       | event ID                                                                                                     |
+| `keyevents[#]source`          | `String`   | Optional    | `undefined`       | source                                                                                                       |
+| `keyevents[#]status`          | `String`   | Optional    | `undefined`       | one of "critical" / "error" / "warning" / "info" / "ok"                                                      |
+| `keyevents[#]rule_id`         | `String`   | Optional    | `undefined`       | rule ID                                                                                                      |
+| `keyevents[#]rule_name`       | `String`   | Optional    | `undefined`       | rule name                                                                                                    |
+| `keyevents[#]type_`           | `String`   | Optional    | `undefined`       | type                                                                                                         |
+| `keyevents[#]alert_item_tags` | `String`   | Optional    | `undefined`       | alert item extra tags. Both key and value should be a string                                                 |
+| `keyevents[#]action_type`     | `String`   | Optional    | `undefined`       | action type                                                                                                  |
+| `keyevents[#]content`         | `String`   | Optional    | `undefined`       | content                                                                                                      |
+| `keyevents[#]tags`            | `JSON`     | Optional    | `undefined`       | tags. Both key and value should be a string                                                                  |
+| `keyevents[#]fields`          | `JSON`     | Optional    | `undefined`       | fields. Key should be a string, value should be a string/integer/float/boolean value                         |
+| `callback`                    | `Function` | Optional    | `undefined`       | Callback function `function(err, ret)`                                                                       |
 
 
 
