@@ -1510,6 +1510,10 @@
       type   : '[object Object]',
       message: 'should be a JSON object',
     },
+    array: {
+      type   : '[object Array]',
+      message: 'should be an Array object',
+    },
     str: {
       type   : '[object String]',
       message: 'should be a String',
@@ -1524,6 +1528,9 @@
   }
   function assertJSON(data, name) {
     return _assertType(data, 'json', name);
+  }
+  function assertArray(data, name) {
+    return _assertType(data, 'array', name);
   }
   function assertStr(data, name) {
     return _assertType(data, 'str', name);
@@ -2000,14 +2007,12 @@
       tags.$type = assertStr(type, 'type');
     }
 
-    // Tags.$alertItem_*
+    // Tags.*
     var alertItemTags = keyevent.alertItemTags;
     if (alertItemTags) {
       assertTags(alertItemTags, 'alertItemTags');
 
-      for (var k in alertItemTags) if (alertItemTags.hasOwnProperty(k)) {
-        tags['$alertItem_' + k] = alertItemTags[k];
-      }
+      Object.assign(tags, alertItemTags);
     }
 
     // Tags.$actionType
@@ -2055,6 +2060,15 @@
       fields.$duration = asInt(durationMs || duration);
     }
 
+    // Fields.$dimensions
+    var dimensions = keyevent.dimensions;
+    if (dimensions) {
+      dimensions = assertArray(dimensions, 'dimensions');
+      dimensions = dimensions.map(function(x) {return '' + x}).sort();
+      dimensions = JSON.stringify(dimensions);
+      fields.$dimensions = dimensions;
+    }
+
     var point = {
         measurement: '$keyevent',
         tags       : tags,
@@ -2076,8 +2090,10 @@
       alertItemTags: data.alertItemTags,
       actionType   : data.actionType,
       content      : data.content,
+      suggestion   : data.suggestion,
       duration     : data.duration,
       durationMs   : data.durationMs,
+      dimensions   : data.dimensions,
       tags         : data.tags,
       fields       : data.fields,
       timestamp    : data.timestamp,
