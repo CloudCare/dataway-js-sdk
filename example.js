@@ -8,12 +8,13 @@ function printSep(title) {
 }
 
 var dw = new dataway.DataWay({
-  debug   : true,
   protocol: 'https',
   host    : 'openway.dataflux.cn',
   port    : 443,
   token   : null,
   rp      : 'rp0',
+  debug   : true,
+  dryRun  : true,
 });
 
 var points = [
@@ -76,49 +77,43 @@ var keyevents = [
   },
 ];
 
-var flows = [
-  {
-    'app'      : 'A1',
-    'traceId'  : 'TRACE-001',
-    'name'     : 'N1',
-    'duration' : 10,
-    'parent'   : 'P1',
-    'tags'     : {'T1': 'X'},
-    'fields'   : {'F1': 'A'},
-    'timestamp': 1577808000,
-  },
-  {
-    'app'       : 'A1',
-    'traceId'   : 'TRACE-001',
-    'name'      : 'N1',
-    'durationMs': 10000,
-    'timestamp' : 1577808001,
-  },
-];
+var objects = {
+  'object':[
+    {
+      '$class': 'objectClass',
+      '$name' : 'objectName',
+      '$tags' : { 'a': 'b', 'c': 'd' }
+    }, {
+      '$class': 'objectClass',
+      '$name' : 'objectName',
+      '$tags' : { 'a': 'b2', 'c': 'd2' }
+    }
+  ]
+}
 
-// 1
-printSep('DataWay write point')
-dw.writePoint(points[0], function() {
+printSep('DataWay ping');
+dw.get({path: '/ping'}, function() {
 
-  // 2
-  printSep('DataWay write points')
-  dw.writePoints(points, function() {
+  printSep('DataWay post line protocol');
+  dw.postLineProtocol(points, {withRP: true}, function() {
 
-    // 3
-    printSep('DataWay write keyevent')
-    dw.writeKeyevent(keyevents[0], function() {
+    printSep('DataWay post json');
+    dw.postJSON(objects, {path: '/v1/object'}, function() {
 
-      // 4
-      printSep('DataWay write keyevents')
-      dw.writeKeyevents(keyevents, function() {
+      printSep('DataWay write metric');
+      dw.writeMetric(points[0], function() {
 
-        // 5
-        printSep('DataWay write flow')
-        dw.writeFlow(flows[0], function() {
+        printSep('DataWay write metrics');
+        dw.writeMetrics(points, function() {
 
-          // 6
-          printSep('DataWay write flows')
-          dw.writeFlows(flows);
+          printSep('DataWay write keyevent');
+          dw.writeKeyevent(keyevents[0], function() {
+
+            printSep('DataWay write keyevents');
+            dw.writeKeyevents(keyevents, function() {
+
+            });
+          });
         });
       });
     });

@@ -22,12 +22,13 @@
     }
 
     var dw = new dataway.DataWay({
-      debug   : true,
       protocol: 'https',
       host    : 'openway.dataflux.cn',
       port    : 443,
       token   : null,
       rp      : 'rp0',
+      debug   : true,
+      dryRun  : true,
     });
 
     var points = [
@@ -55,15 +56,13 @@
       },
     ];
 
-    // 1
-    printSep('DataWay.writePoint()')
-    dw.writePoint(points[0], function(err, ret) {
-      printResp('DataWay.writePoint()', ret);
+    printSep('DataWay write metric');
+    dw.writeMetric(points[0], function(err, ret) {
+      printResp('DataWay.writeMetric()', ret);
 
-      // 2
-      printSep('DataWay.writePoints()')
-      dw.writePoints(points, function(err, ret) {
-        printResp('DataWay.writePoints()', ret);
+      printSep('DataWay write metrics');
+      dw.writeMetrics(points, function(err, ret) {
+        printResp('DataWay.writeMetrics()', ret);
       });
     });
   </script>

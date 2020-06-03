@@ -2,23 +2,22 @@
 
 Javascript 版 DataFlux DataWay SDK。
 
-[English Version](README-en.md)
-
 ## 特性
 
-1. 兼容 Node.js 和 浏览器，在以下环境中通过测试：
-    - Node `v0.10.48` / `v0.12.18` / `v4.9.1` /`v6.11.5` / `v8.16.0` / `v10.15.3` / `v12.12.0`
-    - Chrome `79.0.3945.117 (Mac x64)`
-    - Safari `13.0.4 (Mac)`
-    - Firefox `72.0.2 (Mac x64)`
-
-2. 兼容不同单位的时间戳：
+1. 兼容不同单位的时间戳：
     - 秒
     - 毫秒（1/1000 秒）
     - 微秒（1/1000,000 秒）
     - 纳秒（1/1000,000,000 秒）
 
-3. 关键事件（`Keyevent`）/ 流程行为（`FLow`）/ 告警（`Alert`）支持。
+2. Low-Level API 支持，包括：
+    - 发送GET请求
+    - 发送行协议POST请求
+    - 发送JSON POST请求
+
+3. High-Level API 支持，包括：
+    - 写入指标数据（`metric`/`point`）
+    - 写入关键事件数据（`keyevent`）
 
 4. DataWay 认证支持。
 
@@ -52,20 +51,20 @@ var dw = new dataway.DataWay({
   url: 'http://localhost:9528/v1/write/metrics?token=xxxxxx',
 });
 
-// Write a point
-dw.writePoint({
+// 写入指标数据
+dw.writeMetric({
   measurement: 'M1',
   tags       : {'T1': 'X'},
   fields     : {'F1': 'A'},
   timestamp  : 1577808001,
 });
 
-// Write many points
-dw.writePoints([
+// 批量写入指标数据
+dw.writeMetrics([
     {
         measurement: 'M1',
         tags       : {'T1': 'X', 'T2': 'Y'},
-        fields     : {'F1': 'A', 'F2': 42, 'F3': 4.2, 'F4': True, 'F5': False},
+        fields     : {'F1': 'A', 'F2': dataway.asInt(42), 'F3': 4.2, 'F4': true, 'F5': false},
         timestamp  : 1577808000,
     },
     {
@@ -93,7 +92,8 @@ DataWay 类
 | `token`                 | `String`          | 可选     | `null`                | DataFlux 工作空间上报Token。只有OpenWay和内部DataWay需要填写                  |
 | `rp`                    | `String`          | 可选     | `null`                | 写入目标`retention policy`                                                    |
 | `accessKey`/`secretKey` | `String`/`String` | 可选     | `null`/`null`         | DataWay 认证用 AccessKey 和 SecretKey                                         |
-| `debug`                 | `Boolean`         | 可选     | `False`               | 是否打印详细调试信息                                                          |
+| `debug`                 | `Boolean`         | 可选     | `false`               | 是否打印详细调试信息                                                          |
+| `dryRun`                | `Boolean`         | 可选     | `false`               | 是否仅以演习方式运行（不实际发送HTTP请求）                                    |
 
 以下两种初始化方式等价：
 - `DataWay({ url: "http://localhost:9528/v1/write/metrics?token=xxxxxx" })`
@@ -120,11 +120,72 @@ routes_config:
 
 
 
+### Low-Level API
+
+#### *method* `DataWay.get(opt, callback)`
+
+发送GET请求
+
+|      参数     |    类型    | 是否必须 |   默认值    |              说明             |
+|---------------|------------|----------|-------------|-------------------------------|
+| `opt.path`    | `String`   | 必须     |             | 请求路径，如：`/ping`         |
+| `opt.query`   | `JSON`     | 可选     | `undefined` | 请求Query参数                 |
+| `opt.headers` | `JSON`     | 可选     | `undefined` | 请求Headers参数               |
+| `callback`    | `Function` | 可选     | `undefined` | 回调函数 `function(err, ret)` |
+
+
+
 ---
 
 
 
-###### *method* `DataWay.writePoint(data, callback)`
+#### *method* `DataWay.postLineProtocol(points, opt, callback)`
+
+使用POST方式发送行协议数据
+
+|            参数            |    类型    | 是否必须 |           默认值            |                               说明                              |
+|----------------------------|------------|----------|-----------------------------|-----------------------------------------------------------------|
+| `points`                   | `Array`    | 必须     |                             | 数据点列表                                                      |
+| `points[#]`                | `JSON`     | 必须     |                             | 数据点                                                          |
+| `points[#]["measurement"]` | `String`   | 必须     |                             | 指标集名称                                                      |
+| `points[#]["tags"]`        | `JSON`     | 可选     | `undefined`                 | 标签。键名和键值必须都为字符串                                  |
+| `points[#]["fields"]`      | `JSON`     | 必须     |                             | 指标。键名必须为字符串，键值可以为字符串/整数/浮点数/布尔值之一 |
+| `points[#]["timestamp"]`   | `Number`   | 可选     | 当前时间                    | 时间戳，支持秒/毫秒/微秒/纳秒。SDK会判断并自动转换为纳秒        |
+| `opt`                      | `JSON`     | 可选     | `undefined`                 | 请求参数                                                        |
+| `opt.path`                 | `String`   | 可选     | `DataWay`实例化时指定的路径 | 请求路径，如：`/v1/keyevent`                                    |
+| `opt.query`                | `JSON`     | 可选     | `undefined`                 | 请求Query参数                                                   |
+| `opt.headers`              | `JSON`     | 可选     | `undefined`                 | 请求Headers参数                                                 |
+| `opt.withRP`               | `Boolean`  | 可选     | `false`                     | 是否自动附带`rp`参数                                            |
+| `callback`                 | `Function` | 可选     | `undefined`                 | 回调函数 `function(err, ret)`                                   |
+
+*注意：由于SDK会自动将时间戳`timestamp`转换为纳秒，因此请勿在`query`中额外指定`precision`参数*
+
+
+
+---
+
+
+
+#### *method* `DataWay.postJSON(jsonObj, opt, callback)`
+
+使用POST方式发送行协议数据
+
+|      参数     |    类型    | 是否必须 |   默认值    |              说明             |
+|---------------|------------|----------|-------------|-------------------------------|
+| `jsonObj`     | `JSON`     | 必须     |             | JSON数据                      |
+| `opt`         | `JSON`     | 必须     |             | 请求参数                      |
+| `opt.path`    | `String`   | 必须     |             | 请求路径，如：`/v1/object`    |
+| `opt.query`   | `JSON`     | 可选     | `undefined` | 请求Query参数                 |
+| `opt.headers` | `JSON`     | 可选     | `undefined` | 请求Headers参数               |
+| `opt.withRP`  | `Boolean`  | 可选     | `false`     | 是否自动附带`rp`参数          |
+| `callback`    | `Function` | 可选     | `undefined` | 回调函数 `function(err, ret)` |
+
+
+
+
+### High-Level API
+
+###### *method* `DataWay.writeMetric(data, callback)`
 
 写入数据点
 
@@ -143,19 +204,39 @@ routes_config:
 
 
 
-###### *method* `DataWay.writePoints(points, callback)`
+###### *method* `DataWay.writeMetrics(data, callback)`
 
 写入多个数据点
 
-|           参数          |    类型    | 是否必须 |   默认值    |                               说明                              |
-|-------------------------|------------|----------|-------------|-----------------------------------------------------------------|
-| `points`                | `Array`    | 必须     |             | 数据点列表                                                      |
-| `points[#]`             | `JSON`     | 必须     |             | 数据点                                                          |
-| `points[#].measurement` | `String`   | 必须     |             | 指标集名称                                                      |
-| `points[#].tags`        | `JSON`     | 可选     | `undefined` | 标签。键名和键值必须都为字符串                                  |
-| `points[#].fields`      | `JSON`     | 可选     | `undefined` | 指标。键名必须为字符串，键值可以为字符串/整数/浮点数/布尔值之一 |
-| `points[#].timestamp`   | `Number`   | 可选     | 当前时间    | 时间戳，支持秒/毫秒/微秒/纳秒。SDK会判断并自动转换为纳秒        |
-| `callback`              | `Function` | 可选     | `undefined` | 回调函数 `function(err, ret)`                                   |
+|          参数         |    类型    | 是否必须 |   默认值    |                               说明                              |
+|-----------------------|------------|----------|-------------|-----------------------------------------------------------------|
+| `data`                | `Array`    | 必须     |             | 数据点列表                                                      |
+| `data[#]`             | `JSON`     | 必须     |             | 数据点                                                          |
+| `data[#].measurement` | `String`   | 必须     |             | 指标集名称                                                      |
+| `data[#].tags`        | `JSON`     | 可选     | `undefined` | 标签。键名和键值必须都为字符串                                  |
+| `data[#].fields`      | `JSON`     | 可选     | `undefined` | 指标。键名必须为字符串，键值可以为字符串/整数/浮点数/布尔值之一 |
+| `data[#].timestamp`   | `Number`   | 可选     | 当前时间    | 时间戳，支持秒/毫秒/微秒/纳秒。SDK会判断并自动转换为纳秒        |
+| `callback`            | `Function` | 可选     | `undefined` | 回调函数 `function(err, ret)`                                   |
+
+
+
+---
+
+
+
+#### *method* `DataWay.writePoint(data, callback)`
+
+「写入指标数据」方法`DataWay.writeMetric(...)`的别名
+
+
+
+---
+
+
+
+#### *method* `DataWay.writePoint(points, callback)`
+
+「批量写入指标数据」方法`DataWay.writeMetrics(...)`的别名
 
 
 
@@ -194,83 +275,34 @@ routes_config:
 
 
 
-###### *method* `DataWay.writeKeyevents(keyevents, callback)`
+###### *method* `DataWay.writeKeyevents(data, callback)`
 
 写入多个关键事件
 
-|              参数             |    类型    | 是否必须 |   默认值    |                               说明                              |
-|-------------------------------|------------|----------|-------------|-----------------------------------------------------------------|
-| `keyevents`                   | `Array`    | 必须     |             | 关键事件列表                                                    |
-| `keyevents[#]`                | `JSON`     | 必须     |             | 关键事件                                                        |
-| `keyevents[#]title`           | `String`   | 必须     |             | 标题                                                            |
-| `keyevents[#]timestamp`       | `Number`   | 必须     |             | 时间戳，支持秒/毫秒/微秒/纳秒。SDK会判断并自动转换为纳秒        |
-| `keyevents[#]event_id`        | `String`   | 可选     | `undefined` | 事件ID                                                          |
-| `keyevents[#]source`          | `String`   | 可选     | `undefined` | 来源                                                            |
-| `keyevents[#]status`          | `String`   | 可选     | `undefined` | "critical" / "error" / "warning" / "info" / "ok" 之一           |
-| `keyevents[#]rule_id`         | `String`   | 可选     | `undefined` | 规则ID                                                          |
-| `keyevents[#]rule_name`       | `String`   | 可选     | `undefined` | 规则名称                                                        |
-| `keyevents[#]type_`           | `String`   | 可选     | `undefined` | 类型                                                            |
-| `keyevents[#]alert_item_tags` | `String`   | 可选     | `undefined` | 告警对象标签。键名和键值必须都为字符串                          |
-| `keyevents[#]action_type`     | `String`   | 可选     | `undefined` | 动作类型                                                        |
-| `keyevents[#]content`         | `String`   | 可选     | `undefined` | 内容                                                            |
-| `keyevents[#]suggestion`      | `String`   | 可选     | `undefined` | 建议                                                            |
-| `keyevents[#]duration`        | `Integer`  | 可选     | `undefined` | 在当前节点滞留时间或持续时间（秒）                              |
-| `keyevents[#]duration_ms`     | `Integer`  | 可选     | `undefined` | 在当前节点滞留时间或持续时间（毫秒）                            |
-| `keyevents[#]dimensions`      | [`String`] | 可选     | `undefined` | 触发维度                                                        |
-| `keyevents[#]tags`            | `JSON`     | 可选     | `undefined` | 标签。键名和键值必须都为字符串                                  |
-| `keyevents[#]fields`          | `JSON`     | 可选     | `undefined` | 指标。键名必须为字符串，键值可以为字符串/整数/浮点数/布尔值之一 |
-| `callback`                    | `Function` | 可选     | `undefined` | 回调函数 `function(err, ret)`                                   |
+|           参数           |    类型    | 是否必须 |   默认值    |                               说明                              |
+|--------------------------|------------|----------|-------------|-----------------------------------------------------------------|
+| `data`                   | `Array`    | 必须     |             | 关键事件列表                                                    |
+| `data[#]`                | `JSON`     | 必须     |             | 关键事件                                                        |
+| `data[#]title`           | `String`   | 必须     |             | 标题                                                            |
+| `data[#]timestamp`       | `Number`   | 必须     |             | 时间戳，支持秒/毫秒/微秒/纳秒。SDK会判断并自动转换为纳秒        |
+| `data[#]event_id`        | `String`   | 可选     | `undefined` | 事件ID                                                          |
+| `data[#]source`          | `String`   | 可选     | `undefined` | 来源                                                            |
+| `data[#]status`          | `String`   | 可选     | `undefined` | "critical" / "error" / "warning" / "info" / "ok" 之一           |
+| `data[#]rule_id`         | `String`   | 可选     | `undefined` | 规则ID                                                          |
+| `data[#]rule_name`       | `String`   | 可选     | `undefined` | 规则名称                                                        |
+| `data[#]type_`           | `String`   | 可选     | `undefined` | 类型                                                            |
+| `data[#]alert_item_tags` | `String`   | 可选     | `undefined` | 告警对象标签。键名和键值必须都为字符串                          |
+| `data[#]action_type`     | `String`   | 可选     | `undefined` | 动作类型                                                        |
+| `data[#]content`         | `String`   | 可选     | `undefined` | 内容                                                            |
+| `data[#]suggestion`      | `String`   | 可选     | `undefined` | 建议                                                            |
+| `data[#]duration`        | `Integer`  | 可选     | `undefined` | 在当前节点滞留时间或持续时间（秒）                              |
+| `data[#]duration_ms`     | `Integer`  | 可选     | `undefined` | 在当前节点滞留时间或持续时间（毫秒）                            |
+| `data[#]dimensions`      | [`String`] | 可选     | `undefined` | 触发维度                                                        |
+| `data[#]tags`            | `JSON`     | 可选     | `undefined` | 标签。键名和键值必须都为字符串                                  |
+| `data[#]fields`          | `JSON`     | 可选     | `undefined` | 指标。键名必须为字符串，键值可以为字符串/整数/浮点数/布尔值之一 |
+| `callback`               | `Function` | 可选     | `undefined` | 回调函数 `function(err, ret)`                                   |
 
 
-
----
-
-
-
-###### *method* `DataWay.writeFlow(data, callback)`
-
-写入流程行为
-
-|        参数       |    类型    |  是否必须  |   默认值    |                                 说明                                |
-|-------------------|------------|------------|-------------|---------------------------------------------------------------------|
-| `data`            | `JSON`     | 必须       |             | 流程行为                                                            |
-| `data.app`        | `String`   | 必须       |             | 应用名                                                              |
-| `data.traceId`    | `String`   | 必须       |             | 标示一个流程单的唯一ID                                              |
-| `data.name`       | `String`   | 必须       |             | 节点名称                                                            |
-| `data.timestamp`  | `Number`   | 必须       |             | 时间戳，支持秒/毫秒/微秒/纳秒。SDK会判断并自动转换为纳秒            |
-| `data.duration`   | `Integer`  | 必须二选一 |             | 在当前节点滞留时间或持续时间（秒）                                  |
-| `data.durationMs` | `Integer`  | 必须二选一 |             | 在当前节点滞留时间或持续时间（毫秒）                                |
-| `data.parent`     | `String`   | 可选       | `undefined` | 上一个节点的名称。第一个节点不用上报                                |
-| `data.tags`       | `JSON`     | 可选       | `undefined` | 额外标签。键名和键值必须都为字符串                                  |
-| `data.fields`     | `JSON`     | 可选       | `undefined` | 额外指标。键名必须为字符串，键值可以为字符串/整数/浮点数/布尔值之一 |
-| `callback`        | `Function` | 可选       | `undefined` | 回调函数 `function(err, ret)`                                       |
-
-`data.duration`和`data.durationMs`两者必须填一个
-
-
-
----
-
-
-
-###### *method* `DataWay.writeFlows(flows, callback)`
-
-写入多个流程行为
-
-|          参数         |    类型    |  是否必须  |   默认值    |                                 说明                                |
-|-----------------------|------------|------------|-------------|---------------------------------------------------------------------|
-| `flows`               | `Array`    | 必须       |             | 流程行为列表                                                        |
-| `flows[#]`            | `JSON`     | 必须       |             | 流程行为                                                            |
-| `flows[#].app`        | `String`   | 必须       |             | 应用名                                                              |
-| `flows[#].traceId`    | `String`   | 必须       |             | 标示一个流程单的唯一ID                                              |
-| `flows[#].name`       | `String`   | 必须       |             | 节点名称                                                            |
-| `flows[#].timestamp`  | `Number`   | 必须       |             | 时间戳，支持秒/毫秒/微秒/纳秒。SDK会判断并自动转换为纳秒            |
-| `flows[#].duration`   | `Integer`  | 必须二选一 |             | 在当前节点滞留时间或持续时间（秒）                                  |
-| `flows[#].durationMs` | `Integer`  | 必须二选一 |             | 在当前节点滞留时间或持续时间（毫秒）                                |
-| `flows[#].parent`     | `String`   | 可选       | `undefined` | 上一个节点的名称。第一个节点不用上报                                |
-| `flows[#].tags`       | `JSON`     | 可选       | `undefined` | 额外标签。键名和键值必须都为字符串                                  |
-| `flows[#].fields`     | `JSON`     | 可选       | `undefined` | 额外指标。键名必须为字符串，键值可以为字符串/整数/浮点数/布尔值之一 |
-| `callback`            | `Function` | 可选       | `undefined` | 回调函数 `function(err, ret)`                                       |
 
 ## 声明
 

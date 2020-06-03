@@ -1438,7 +1438,7 @@
     return pattern.replace(/\{(\d+)\}/g, function replaceFunc(m, i) {
       return args[i] + '';
     });
-  };
+  }
   function parseQuery(query) {
     if (query[0] === '?') query = query.slice(1);
 
@@ -1450,6 +1450,26 @@
 
     return queryObj;
   };
+  function encodeQuery(query) {
+    var parts = [];
+    for (var k in query) {
+      var v = query[k];
+      parts.push(encodeURIComponent(k) + '=' + encodeURIComponent(v));
+    }
+    return parts.join('&');
+  }
+  function dumpHeaders(headers) {
+    var headersDumps = '';
+    if (headers) {
+      var headerLines = [];
+      for (var k in headers) {
+        headerLines.push(k + ': ' + headers[k]);
+      }
+      headersDumps = headerLines.join('\n');
+    }
+
+    return headersDumps;
+  }
 
   function padLeft(str, char, length) {
     while(str.length < length) str = char + str;
@@ -1462,6 +1482,9 @@
 
   function isObject(o) {
     return Object.prototype.toString.call(o) === '[object Object]';
+  }
+  function isEmptyObjectOrNothing(o) {
+    return !o || isObject(o) && Object.keys(o).length === 0;
   }
   function isString(o) {
     return 'string' === typeof o;
@@ -1549,9 +1572,9 @@
     return data;
   }
 
-  function assertEnum(data, name, options) {
-    if (options.indexOf(data) < 0) {
-      throw new Error(strf('`{0}` should be one of {1}', name, options.join(',')));
+  function assertEnum(data, name, opt) {
+    if (opt.indexOf(data) < 0) {
+      throw new Error(strf('`{0}` should be one of {1}', name, opt.join(',')));
     }
     return data;
   }
@@ -1586,20 +1609,19 @@
     return data;
   }
 
-  function DataWay(options) {
-    this.CONTENT_TYPE = 'text/plain';
-    this.METHOD       = 'POST';
+  function DataWay(opt) {
+    opt = opt || {};
 
-    options = options || {};
-    this.host      = options.host || 'localhost';
-    this.port      = parseInt(options.port || 9528);
-    this.protocol  = options.protocol || 'http';
-    this.path      = options.path || '/v1/write/metrics';
-    this.token     = options.token;
-    this.rp        = options.rp || null;
-    this.accessKey = options.accessKey;
-    this.secretKey = options.secretKey;
-    this.debug     = options.debug || false;
+    this.host      = opt.host || 'localhost';
+    this.port      = parseInt(opt.port || 9528);
+    this.protocol  = opt.protocol || 'http';
+    this.path      = opt.path || '/v1/write/metrics';
+    this.token     = opt.token;
+    this.rp        = opt.rp || null;
+    this.accessKey = opt.accessKey;
+    this.secretKey = opt.secretKey;
+    this.debug     = opt.debug  || false;
+    this.dryRun    = opt.dryRun || false;
 
     if (this.debug) {
       if (isBrowser) {
@@ -1607,10 +1629,14 @@
       } else {
         console.log(strf('[JS Environment]\n node {0} {1} {2}', process.version, process.platform, process.arch));
       }
+
+      if (this.dryRun) {
+        console.log('[DRY RUN MODE]');
+      }
     }
 
-    if (options.url) {
-      var parsedURL = new URL(options.url);
+    if (opt.url) {
+      var parsedURL = new URL(opt.url);
 
       this.protocol = parsedURL.protocol.replace(/\:$/g, '');
 
@@ -1634,6 +1660,7 @@
   }
 
   DataWay.prototype._toNsString = function(timestamp) {
+    timestamp = timestamp || Date.now();
     timestamp = timestamp.toString();
     if (timestamp.indexOf('e') >= 0) {
       var parts = timestamp.split('e');
@@ -1668,18 +1695,20 @@
     return md5Res;
   };
 
-  DataWay.prototype._prepareHeaders = function(body) {
-    var headers = {
-      'Content-Type': this.CONTENT_TYPE,
-    };
+  DataWay.prototype._prepareAuthHeaders = function(opt) {
+    opt = opt || {};
 
+    opt.body        = opt.body        || '';
+    opt.contentType = opt.contentType || '';
+
+    var headers = {};
     if (!this.accessKey || !this.secretKey) {
       return headers;
     }
 
-    var bodyMD5 = this._getBodyMD5(body);
+    var bodyMD5 = this._getBodyMD5(opt.body);
     var dateStr = new Date().toGMTString();
-    var strToSign = [this.METHOD, bodyMD5, this.CONTENT_TYPE, dateStr].join('\n');
+    var strToSign = [opt.method, bodyMD5, opt.contentType, dateStr].join('\n');
 
     var sign = this._getSign(strToSign);
 
@@ -1694,7 +1723,9 @@
     return headers;
   };
 
-  DataWay.prototype._prepareBody = function(points) {
+  DataWay.prototype._prepareLineProtocol = function(points) {
+    var self = this;
+
     if (!Array.isArray(points)) points = [points];
 
     var lines = [];
@@ -1755,6 +1786,7 @@
       var fieldSet = strf(' {0}', fieldSetList.join(','));
 
       var timestamp = p.timestamp;
+      timestamp = self._toNsString(timestamp);
       timestamp = strf(' {0}', timestamp);
 
       lines.push(strf('{0}{1}{2}{3}', measurement, tagSet, fieldSet, timestamp));
@@ -1765,120 +1797,49 @@
     return body;
   };
 
-  DataWay.prototype._sendPoints = function(points, callback) {
-    var body = this._prepareBody(points);
-    var headers = this._prepareHeaders(body);
+  DataWay.prototype._doRequest = function(opt, callback) {
+    opt.method = opt.method || 'GET'
+
+    if (!isEmptyObjectOrNothing(opt.query)) {
+      opt.path = opt.path + '?' + encodeQuery(opt.query);
+    }
+    opt.url = strf('{0}://{1}:{2}{3}', this.protocol, this.host, this.port, opt.path);
 
     if (isBrowser) {
-      return this._sendPoints_browser(body, headers, callback);
+      return this._doRequest_browser(opt, callback);
     } else {
-      return this._sendPoints_node(body, headers, callback);
+      return this._doRequest_node(opt, callback);
     }
   };
 
-  DataWay.prototype._sendPoints_browser = function(body, headers, callback) {
+  DataWay.prototype._doRequest_browser = function(opt, callback) {
     var self = this;
 
-    var xhr = new XMLHttpRequest();
-
-    var queryItems = [];
-    if (self.token) {
-      queryItems.push('token=' + self.token);
-    }
-    if (self.rp) {
-      queryItems.push('rp=' + self.rp);
-    }
-
-    var url = strf('{0}://{1}:{2}{3}', self.protocol, self.host, self.port, self.path)
-    if (queryItems.length > 0) {
-      url += '?' + queryItems.join('&');
-    }
-
-    if (this.debug) {
-      console.log(strf('[Request URL]\n{0}', url));
-      console.log(strf('[Request Body]\n{0}', body));
-    }
-
-    xhr.open(self.METHOD, url);
-
-    if (headers) {
-      for (var k in headers) if (headers.hasOwnProperty(k)) {
-        xhr.setRequestHeader(k, headers[k]);
+    if (self.debug) {
+      console.log(strf('[Request] {0} {1}', opt.method, opt.url));
+      console.log(strf('[Request Headers]\n{0}', dumpHeaders(opt.headers) || '<EMPTY>'));
+      if (opt.method.toUpperCase() !== 'GET') {
+        console.log(strf('[Request Body]\n{0}', opt.body || '<EMPTY>'));
       }
     }
 
-    var reqCallback = function() {
-      var respData = xhr.responseText;
-      try { respData = JSON.parse(respData); } catch(err) { }
+    if (!self.dryRun) {
+      var xhr = new XMLHttpRequest();
 
-      var ret = {
-        statusCode: xhr.status,
-        respData  : respData,
+      xhr.open(opt.method, opt.url);
+
+      if (!isEmptyObjectOrNothing(opt.headers)) {
+        for (var k in opt.headers) if (opt.headers.hasOwnProperty(k)) {
+          xhr.setRequestHeader(k, opt.headers[k]);
+        }
       }
 
-      if (self.debug) {
-        console.log(strf('\n[Response Status Code] {0}', ret.statusCode));
-        console.log(strf('[Response Body] {0}', JSON.stringify(ret.respData)));
-      }
-
-      if ('function' === typeof callback) callback(null, ret);
-    };
-
-    xhr.onload  = reqCallback;
-    xhr.onerror = reqCallback;
-
-    xhr.send(body);
-  };
-
-  DataWay.prototype._sendPoints_node = function(body, headers, callback) {
-    var self = this;
-
-    var queryItems = [];
-    if (self.token) {
-      queryItems.push('token=' + self.token);
-    }
-    if (self.rp) {
-      queryItems.push('rp=' + self.rp);
-    }
-
-    var url = strf('{0}://{1}:{2}{3}', self.protocol, self.host, self.port, self.path)
-    if (queryItems.length > 0) {
-      url += '?' + queryItems.join('&');
-    }
-
-    if (this.debug) {
-      console.log(strf('[Request URL]\n{0}://{1}:{2}{3}', self.protocol, self.host, self.port, url));
-      console.log(strf('[Request Body]\n{0}', body));
-    }
-
-    // Do HTTP/HTTPS
-    var requestOptions = {
-      host   : self.host,
-      port   : self.port,
-      path   : url,
-      method : self.METHOD,
-      headers: headers,
-      timeout: 3 * 1000,
-    };
-
-    var httpLib = self.protocol === 'https' ? https : http;
-
-    var respStatusCode = 0;
-    var respRawData    = '';
-    var respData       = '';
-    var req = httpLib.request(requestOptions, function(res) {
-      respStatusCode = res.statusCode;
-
-      res.on('data', function(chunk) {
-        respRawData += chunk;
-      });
-
-      res.on('end', function() {
-        respData = respRawData;
-        try { respData = JSON.parse(respData); } catch(err) { };
+      var reqCallback = function() {
+        var respData = xhr.responseText;
+        try { respData = JSON.parse(respData); } catch(err) { }
 
         var ret = {
-          statusCode: respStatusCode,
+          statusCode: xhr.status,
           respData  : respData,
         }
 
@@ -1887,128 +1848,269 @@
           console.log(strf('[Response Body] {0}', JSON.stringify(ret.respData)));
         }
 
-        if ('function' === typeof callback) return callback(null, ret);
-      });
-    });
+        if ('function' === typeof callback) callback(null, ret);
+      };
 
-    req.on('error', function(err) {
-      if ('function' === typeof callback) {
-        return callback(err);
-      }
-    });
+      xhr.onload  = reqCallback;
+      xhr.onerror = reqCallback;
 
-    if (body) {
-      req.write(body);
+      xhr.send(opt.body);
+
+    } else {
+      if ('function' === typeof callback) callback();
     }
-
-    req.end();
   };
 
-  // point
-  DataWay.prototype._preparePoint = function(point) {
-    assertJSON(point, 'point');
+  DataWay.prototype._doRequest_node = function(opt, callback) {
+    var self = this;
 
-    var measurement = assertStr(point.measurement, 'measurement');
+    if (self.debug) {
+      console.log(strf('[Request] {0} {1}://{2}:{3}{4}', opt.method, self.protocol, self.host, self.port, opt.path));
+      console.log(strf('[Request Headers]\n{0}', dumpHeaders(opt.headers) || '<EMPTY>'));
+      if (opt.method.toUpperCase() !== 'GET') {
+        console.log(strf('[Request Body]\n{0}', opt.body || '<EMPTY>'));
+      }
+    }
 
-    var tags = point.tags;
+    if (!self.dryRun) {
+      // Do HTTP/HTTPS
+      var requestOptions = {
+        host   : self.host,
+        port   : self.port,
+        path   : opt.path,
+        method : opt.method,
+        headers: opt.headers,
+        timeout: 3 * 1000,
+      };
+
+      var httpLib = self.protocol === 'https' ? https : http;
+
+      var respStatusCode = 0;
+      var respRawData    = '';
+      var respData       = '';
+      var req = httpLib.request(requestOptions, function(res) {
+        respStatusCode = res.statusCode;
+
+        res.on('data', function(chunk) {
+          respRawData += chunk;
+        });
+
+        res.on('end', function() {
+          respData = respRawData;
+          try { respData = JSON.parse(respData); } catch(err) { };
+
+          var ret = {
+            statusCode: respStatusCode,
+            respData  : respData,
+          }
+
+          if (self.debug) {
+            console.log(strf('\n[Response Status Code] {0}', ret.statusCode));
+            console.log(strf('[Response Body] {0}', JSON.stringify(ret.respData)));
+          }
+
+          if ('function' === typeof callback) return callback(null, ret);
+        });
+      });
+
+      req.on('error', function(err) {
+        if ('function' === typeof callback) {
+          return callback(err);
+        }
+      });
+
+      if (opt.body) {
+        req.write(opt.body);
+      }
+
+      req.end();
+
+    } else {
+      if ('function' === typeof callback) callback();
+    }
+  };
+
+  DataWay.prototype._doGET = function(opt, callback) {
+    opt = opt || {};
+
+    opt.method  = 'GET';
+    opt.path    = opt.path    || this.path;
+    opt.headers = opt.headers || {};
+
+    var _authHeaders = this._prepareAuthHeaders(opt);
+    Object.assign(opt.headers, _authHeaders);
+
+    return this._doRequest(opt, callback);
+  };
+
+  DataWay.prototype._doPOST = function(opt, callback) {
+    opt = opt || {};
+
+    opt.method      = 'POST';
+    opt.contentType = opt.contentType || 'text/plain';
+    opt.path        = opt.path        || this.path;
+    opt.query       = opt.query       || {};
+    opt.headers     = opt.headers     || {};
+
+    if (this.token) {
+      opt.query['token'] = this.token;
+    }
+    if (opt.withRP && this.rp) {
+      opt.query['rp'] = this.rp;
+    }
+
+    var _authHeaders = this._prepareAuthHeaders(opt);
+    Object.assign(opt.headers, _authHeaders);
+    opt.headers['Content-Type'] = opt.contentType;
+
+    return this._doRequest(opt, callback);
+  };
+
+  // Low-Level API
+  DataWay.prototype.get = function(opt, callback) {
+    return this._doGET(opt, callback);
+  };
+
+  DataWay.prototype.postLineProtocol = function(points, opt, callback) {
+    opt = opt || {};
+    opt.contentType = 'text/plain';
+
+    opt.body = this._prepareLineProtocol(points);
+
+    return this._doPOST(opt, callback);
+  };
+
+  DataWay.prototype.postJSON = function(jsonObj, opt, callback) {
+    opt = opt || {};
+    opt.contentType = 'application/json';
+
+    opt.body = jsonObj;
+    if ('string' !== typeof opt.body) {
+      opt.body = JSON.stringify(opt.body);
+    }
+
+    return this._doPOST(opt, callback);
+  };
+
+  // High-Level API
+  DataWay.prototype._prepareMetric = function(data) {
+    assertJSON(data, 'data');
+
+    var measurement = assertStr(data.measurement, 'measurement');
+
+    var tags = data.tags;
     if (tags) {
       assertJSON(tags, 'tags');
       assertTags(tags, 'tags');
     }
 
-    var fields = assertJSON(point.fields, 'fields')
+    var fields = assertJSON(data.fields, 'fields')
 
-    var timestamp = point.timestamp;
+    var timestamp = data.timestamp;
     if (timestamp) {
       assertTimestamp(timestamp, 'timestamp')
-    } else {
-      timestamp = Date.now();
     }
 
-    timestamp = this._toNsString(timestamp);
-
-    var point = {
+    var preparedData = {
         measurement: measurement,
         tags       : tags   || null,
         fields     : fields || null,
         timestamp  : timestamp,
     };
-    return point;
+    return preparedData;
   };
 
-  DataWay.prototype.writePoint = function(data, callback) {
-    var point = {
+  DataWay.prototype.writeMetric = function(data, callback) {
+    var data = {
         measurement: data.measurement,
         tags       : data.tags,
         fields     : data.fields,
         timestamp  : data.timestamp,
     }
-    var preparedPoint = this._preparePoint(point);
+    var preparedData = this._prepareMetric(data);
 
-    this._sendPoints(preparedPoint, callback);
+    var opt = {
+      path  : '/v1/write/metrics',
+      withRP: true,
+    };
+    this.postLineProtocol(preparedData, opt, callback);
+  };
+
+  DataWay.prototype.writeMetrics = function(data, callback) {
+    var self = this;
+
+    if (!Array.isArray(data)) {
+      throw new Error('`data` should be an array');
+    }
+
+    var preparedData = [];
+    data.forEach(function(d) {
+      preparedData.push(self._prepareMetric(d));
+    });
+
+    var opt = {
+      path  : '/v1/write/metrics',
+      withRP: true,
+    };
+    self.postLineProtocol(preparedData, opt, callback);
+  };
+
+  DataWay.prototype.writePoint = function(data, callback) {
+    // Alias of this.writeMetric()
+    return this.writeMetric(data, callback);
   };
 
   DataWay.prototype.writePoints = function(points, callback) {
-    var self = this;
-
-    if (!Array.isArray(points)) {
-      throw new Error('`points` should be an array');
-    }
-
-    var preparedPoints = [];
-    points.forEach(function(d) {
-      preparedPoints.push(self._preparePoint(d));
-    });
-
-    self._sendPoints(preparedPoints, callback);
+    // Alias of this.writeMetrics()
+    return this.writeMetrics(data, callback);
   };
 
-  // $keyevent
-  DataWay.prototype._prepareKeyevent = function(keyevent) {
-    assertJSON(keyevent, 'keyevent');
+  // keyevent
+  DataWay.prototype._prepareKeyevent = function(data) {
+    assertJSON(data, 'data');
 
     // Check Tags
-    var tags = keyevent.tags || {};
+    var tags = data.tags || {};
     assertTags(tags, 'tags')
 
     // Tags.$eventId
-    var eventId = keyevent.eventId;
+    var eventId = data.eventId;
     if (eventId) {
       tags.$eventId = assertStr(eventId, 'eventId');
     }
 
     // Tags.$source
-    var source = keyevent.source;
+    var source = data.source;
     if (source) {
       tags.$source = assertStr(source, 'source');
     }
 
     // Tags.$status
-    var status = keyevent.status;
+    var status = data.status;
     if (status) {
-      tags.$status = assertEnum(keyevent.status, 'status', KEYEVENT_STATUS);
+      tags.$status = assertEnum(data.status, 'status', KEYEVENT_STATUS);
     }
 
     // Tags.$ruleId
-    var ruleId = keyevent.ruleId;
+    var ruleId = data.ruleId;
     if (ruleId) {
       tags.$ruleId = assertStr(ruleId, 'ruleId');
     }
 
     // Tags.$ruleName
-    var ruleName = keyevent.ruleName;
+    var ruleName = data.ruleName;
     if (ruleName) {
       tags.$ruleName = assertStr(ruleName, 'ruleName');
     }
 
     // Tags.$type
-    var type = keyevent.type;
+    var type = data.type;
     if (type) {
       tags.$type = assertStr(type, 'type');
     }
 
     // Tags.*
-    var alertItemTags = keyevent.alertItemTags;
+    var alertItemTags = data.alertItemTags;
     if (alertItemTags) {
       assertTags(alertItemTags, 'alertItemTags');
 
@@ -2016,37 +2118,37 @@
     }
 
     // Tags.$actionType
-    var actionType = keyevent.actionType;
+    var actionType = data.actionType;
     if (actionType) {
       tags.$actionType = assertStr(actionType, 'actionType');
     }
 
     // Check Fields
-    var fields = keyevent.fields || {};
+    var fields = data.fields || {};
     assertTags(fields, 'fields')
 
     // Fields.$title
-    fields.$title = assertStr(keyevent.title, 'title');
+    fields.$title = assertStr(data.title, 'title');
 
     // Fields.$content
-    var content = keyevent.content;
+    var content = data.content;
     if (content) {
       fields.$content = assertStr(content, 'content');
     }
 
     // Fields.$suggestion
-    var suggestion = keyevent.suggestion;
+    var suggestion = data.suggestion;
     if (suggestion) {
       fields.$suggestion = assertStr(suggestion, 'suggestion');
     }
 
     // Fields.$duration
-    var durationMs = keyevent.durationMs;
+    var durationMs = data.durationMs;
     if ('number' === typeof durationMs) {
       assertInt(durationMs, 'durationMs')
     }
 
-    var duration = keyevent.duration;
+    var duration = data.duration;
     if ('number' === typeof duration) {
       assertInt(duration, 'duration')
     }
@@ -2061,7 +2163,7 @@
     }
 
     // Fields.$dimensions
-    var dimensions = keyevent.dimensions;
+    var dimensions = data.dimensions;
     if (dimensions) {
       dimensions = assertArray(dimensions, 'dimensions');
       dimensions = dimensions.map(function(x) {return '' + x}).sort();
@@ -2069,13 +2171,13 @@
       fields.$dimensions = dimensions;
     }
 
-    var point = {
+    var preparedData = {
         measurement: '$keyevent',
         tags       : tags,
         fields     : fields,
-        timestamp  : keyevent.timestamp,
+        timestamp  : data.timestamp,
     }
-    return this._preparePoint(point);
+    return this._prepareMetric(preparedData);
   };
 
   DataWay.prototype.writeKeyevent = function(data, callback) {
@@ -2098,116 +2200,35 @@
       fields       : data.fields,
       timestamp    : data.timestamp,
     }
-    var preparedPoint = this._prepareKeyevent(keyevent);
-    this._sendPoints(preparedPoint, callback);
+    var preparedData = this._prepareKeyevent(keyevent);
+
+    var opt = {
+      path: '/v1/keyevent',
+    };
+    this.postLineProtocol(preparedData, opt, callback);
   };
 
-  DataWay.prototype.writeKeyevents = function(keyevents, callback) {
+  DataWay.prototype.writeKeyevents = function(data, callback) {
     var self = this;
 
-    if (!Array.isArray(keyevents)) {
-      throw new Error('`keyevents` should be an array');
+    if (!Array.isArray(data)) {
+      throw new Error('`data` should be an array');
     }
 
-    var preparedPoints = []
-    keyevents.forEach(function(d) {
-      preparedPoints.push(self._prepareKeyevent(d));
+    var preparedData = [];
+    data.forEach(function(d) {
+      preparedData.push(self._prepareKeyevent(d));
     });
 
-    self._sendPoints(preparedPoints, callback);
-  };
-
-  // $flow
-  DataWay.prototype._prepareFlow = function(flow) {
-    assertJSON(flow, 'flow');
-
-    // Check Tags
-    var tags = flow.tags || {};
-    assertTags(tags, 'tags');
-
-    // Measurements.$flow_*
-    assertStr(flow.app, 'app');
-
-    // Tags.$traceId
-    tags.$traceId = assertStr(flow.traceId, 'traceId');
-
-    // Tags.$name
-    tags.$name = assertStr(flow.name, 'name');
-
-    // Tags.$parent
-    var parent = flow.parent;
-    if (parent) {
-      tags.$parent = assertStr(parent, 'parent');
-    }
-
-    // Check Fields
-    var fields = flow.fields || {};
-    assertJSON(fields, 'fields');
-
-    // Tags.$duration
-    var durationMs = flow.durationMs;
-    if ('number' === typeof durationMs) {
-      assertInt(durationMs, 'durationMs')
-    }
-
-    var duration = flow.duration;
-    if ('number' === typeof duration) {
-      assertInt(duration, 'duration')
-    }
-
-    // to ms
-    if ('number' === typeof duration) {
-      duration = duration * 1000;
-    }
-
-    if ('number' !== typeof durationMs && 'number' !== typeof duration) {
-      throw new Error('`duration` or `durationMs` is missing');
-    }
-    fields.$duration = asInt(durationMs || duration);
-
-    var point = {
-        measurement: '$flow_' + flow.app,
-        tags       : tags,
-        fields     : fields,
-        timestamp  : flow.timestamp,
-    }
-    return this._preparePoint(point)
-  };
-
-  DataWay.prototype.writeFlow = function(data, callback) {
-    var flow = {
-        app       : data.app,
-        traceId   : data.traceId,
-        name      : data.name,
-        duration  : data.duration,
-        durationMs: data.durationMs,
-        parent    : data.parent,
-        fields    : data.fields,
-        tags      : data.tags,
-        timestamp : data.timestamp,
-    }
-    var preparedPoint = this._prepareFlow(flow);
-    this._sendPoints(preparedPoint, callback);
-  };
-
-  DataWay.prototype.writeFlows = function(flows, callback) {
-    var self = this;
-
-    if (!Array.isArray(flows)) {
-      throw new Error('`flows` should be an array');
-    }
-
-    var preparedPoints = [];
-    flows.forEach(function(d) {
-      preparedPoints.push(self._prepareFlow(d));
-    })
-
-    self._sendPoints(preparedPoints, callback);
+    var opt = {
+      path: '/v1/keyevent',
+    };
+    this.postLineProtocol(preparedData, opt, callback);
   };
 
   return {
     DataWay: DataWay,
-    Dataway: DataWay,
+    Dataway: DataWay, //Alias
     asInt  : asInt,
   };
 }));
