@@ -98,7 +98,7 @@ dw.get({path: '/ping'}, function() {
   dw.postLineProtocol(points, {withRP: true}, function() {
 
     printSep('DataWay post json');
-    dw.postJSON(objects, {path: '/v1/object'}, function() {
+    dw.postJSON(objects, {path: '/v1/write/object'}, function() {
 
       printSep('DataWay write metric');
       dw.writeMetric(points[0], function() {

@@ -2203,7 +2203,7 @@
     var preparedData = this._prepareKeyevent(keyevent);
 
     var opt = {
-      path: '/v1/keyevent',
+      path: '/v1/write/keyevent',
     };
     this.postLineProtocol(preparedData, opt, callback);
   };
@@ -2221,7 +2221,7 @@
     });
 
     var opt = {
-      path: '/v1/keyevent',
+      path: '/v1/write/keyevent',
     };
     this.postLineProtocol(preparedData, opt, callback);
   };
