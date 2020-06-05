@@ -80,13 +80,13 @@ var keyevents = [
 var objects = {
   'object':[
     {
-      '$class': 'objectClass',
-      '$name' : 'objectName',
-      '$tags' : { 'a': 'b', 'c': 'd' }
+      '__class': 'objectClass',
+      '__name' : 'objectName',
+      '__tags' : { 'a': 'b', 'c': 'd' }
     }, {
-      '$class': 'objectClass',
-      '$name' : 'objectName',
-      '$tags' : { 'a': 'b2', 'c': 'd2' }
+      '__class': 'objectClass',
+      '__name' : 'objectName',
+      '__tags' : { 'a': 'b2', 'c': 'd2' }
     }
   ]
 }

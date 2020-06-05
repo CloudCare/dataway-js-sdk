@@ -2073,40 +2073,40 @@
     var tags = data.tags || {};
     assertTags(tags, 'tags')
 
-    // Tags.$eventId
+    // Tags.__eventId
     var eventId = data.eventId;
     if (eventId) {
-      tags.$eventId = assertStr(eventId, 'eventId');
+      tags.__eventId = assertStr(eventId, 'eventId');
     }
 
-    // Tags.$source
+    // Tags.__source
     var source = data.source;
     if (source) {
-      tags.$source = assertStr(source, 'source');
+      tags.__source = assertStr(source, 'source');
     }
 
-    // Tags.$status
+    // Tags.__status
     var status = data.status;
     if (status) {
-      tags.$status = assertEnum(data.status, 'status', KEYEVENT_STATUS);
+      tags.__status = assertEnum(data.status, 'status', KEYEVENT_STATUS);
     }
 
-    // Tags.$ruleId
+    // Tags.__ruleId
     var ruleId = data.ruleId;
     if (ruleId) {
-      tags.$ruleId = assertStr(ruleId, 'ruleId');
+      tags.__ruleId = assertStr(ruleId, 'ruleId');
     }
 
-    // Tags.$ruleName
+    // Tags.__ruleName
     var ruleName = data.ruleName;
     if (ruleName) {
-      tags.$ruleName = assertStr(ruleName, 'ruleName');
+      tags.__ruleName = assertStr(ruleName, 'ruleName');
     }
 
-    // Tags.$type
+    // Tags.__type
     var type = data.type;
     if (type) {
-      tags.$type = assertStr(type, 'type');
+      tags.__type = assertStr(type, 'type');
     }
 
     // Tags.*
@@ -2117,32 +2117,32 @@
       Object.assign(tags, alertItemTags);
     }
 
-    // Tags.$actionType
+    // Tags.__actionType
     var actionType = data.actionType;
     if (actionType) {
-      tags.$actionType = assertStr(actionType, 'actionType');
+      tags.__actionType = assertStr(actionType, 'actionType');
     }
 
     // Check Fields
     var fields = data.fields || {};
     assertTags(fields, 'fields')
 
-    // Fields.$title
-    fields.$title = assertStr(data.title, 'title');
+    // Fields.__title
+    fields.__title = assertStr(data.title, 'title');
 
-    // Fields.$content
+    // Fields.__content
     var content = data.content;
     if (content) {
-      fields.$content = assertStr(content, 'content');
+      fields.__content = assertStr(content, 'content');
     }
 
-    // Fields.$suggestion
+    // Fields.__suggestion
     var suggestion = data.suggestion;
     if (suggestion) {
-      fields.$suggestion = assertStr(suggestion, 'suggestion');
+      fields.__suggestion = assertStr(suggestion, 'suggestion');
     }
 
-    // Fields.$duration
+    // Fields.__duration
     var durationMs = data.durationMs;
     if ('number' === typeof durationMs) {
       assertInt(durationMs, 'durationMs')
@@ -2159,20 +2159,20 @@
     }
 
     if ('number' === typeof durationMs || 'number' === typeof duration) {
-      fields.$duration = asInt(durationMs || duration);
+      fields.__duration = asInt(durationMs || duration);
     }
 
-    // Fields.$dimensions
+    // Fields.__dimensions
     var dimensions = data.dimensions;
     if (dimensions) {
       dimensions = assertArray(dimensions, 'dimensions');
       dimensions = dimensions.map(function(x) {return '' + x}).sort();
       dimensions = JSON.stringify(dimensions);
-      fields.$dimensions = dimensions;
+      fields.__dimensions = dimensions;
     }
 
     var preparedData = {
-        measurement: '$keyevent',
+        measurement: '__keyevent',
         tags       : tags,
         fields     : fields,
         timestamp  : data.timestamp,
