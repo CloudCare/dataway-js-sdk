@@ -2071,7 +2071,16 @@
 
     // Check Tags
     var tags = data.tags || {};
-    assertTags(tags, 'tags')
+    assertTags(tags, 'tags');
+
+    // Tags.*
+    var alertItemTags = data.alertItemTags;
+    if (alertItemTags) {
+      assertTags(alertItemTags, 'alertItemTags');
+
+      Object.assign(tags, alertItemTags);
+    }
+
 
     // Tags.__eventId
     var eventId = data.eventId;
@@ -2107,14 +2116,6 @@
     var type = data.type;
     if (type) {
       tags.__type = assertStr(type, 'type');
-    }
-
-    // Tags.*
-    var alertItemTags = data.alertItemTags;
-    if (alertItemTags) {
-      assertTags(alertItemTags, 'alertItemTags');
-
-      Object.assign(tags, alertItemTags);
     }
 
     // Tags.__actionType
