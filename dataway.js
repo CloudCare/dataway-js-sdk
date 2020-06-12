@@ -2160,7 +2160,7 @@
     }
 
     if ('number' === typeof durationMs || 'number' === typeof duration) {
-      fields.__duration = asInt(durationMs || duration);
+      fields.__duration = asInt((durationMs || duration) * 1000);
     }
 
     // Fields.__dimensions
