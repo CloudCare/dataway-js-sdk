@@ -1609,6 +1609,10 @@
     return data;
   }
 
+  function jsonCopy(j) {
+    return JSON.parse(JSON.stringify(j));
+  }
+
   function DataWay(opt) {
     opt = opt || {};
 
@@ -1975,6 +1979,10 @@
     opt = opt || {};
     opt.contentType = 'text/plain';
 
+    // break obj reference
+    points = jsonCopy(points);
+    opt    = jsonCopy(opt);
+
     opt.body = this._prepareLineProtocol(points);
 
     return this._doPOST(opt, callback);
@@ -1983,6 +1991,9 @@
   DataWay.prototype.postJSON = function(jsonObj, opt, callback) {
     opt = opt || {};
     opt.contentType = 'application/json';
+
+    // break obj reference
+    opt = jsonCopy(opt);
 
     opt.body = jsonObj;
     if ('string' !== typeof opt.body) {
@@ -2026,7 +2037,11 @@
         tags       : data.tags,
         fields     : data.fields,
         timestamp  : data.timestamp,
-    }
+    };
+
+    // break obj reference
+    data = jsonCopy(data);
+
     var preparedData = this._prepareMetric(data);
 
     var opt = {
@@ -2042,6 +2057,9 @@
     if (!Array.isArray(data)) {
       throw new Error('`data` should be an array');
     }
+
+    // break obj reference
+    data = jsonCopy(data);
 
     var preparedData = [];
     data.forEach(function(d) {
@@ -2200,7 +2218,11 @@
       tags         : data.tags,
       fields       : data.fields,
       timestamp    : data.timestamp,
-    }
+    };
+
+    // break obj reference
+    keyevent = jsonCopy(keyevent);
+
     var preparedData = this._prepareKeyevent(keyevent);
 
     var opt = {
@@ -2215,6 +2237,9 @@
     if (!Array.isArray(data)) {
       throw new Error('`data` should be an array');
     }
+
+    // break obj reference
+    data = jsonCopy(data);
 
     var preparedData = [];
     data.forEach(function(d) {
