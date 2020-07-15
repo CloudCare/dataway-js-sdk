@@ -1609,8 +1609,24 @@
     return data;
   }
 
+  function _jsonReplacer(k, v) {
+    if (v instanceof IntVal) {
+      return {
+        $class: 'IntVal',
+        $value: v.val,
+      };
+    }
+    return v;
+  }
+  function _jsonReceiver(k, v) {
+    if ('object' === typeof v && v.$class === 'IntVal') {
+      return asInt(v.$value);
+    }
+    return v;
+  }
+
   function jsonCopy(j) {
-    return JSON.parse(JSON.stringify(j));
+    return JSON.parse(JSON.stringify(j, _jsonReplacer), _jsonReceiver);
   }
 
   function DataWay(opt) {
