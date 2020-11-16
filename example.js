@@ -4,17 +4,17 @@ function printSep(title) {
   var line = '';
   for (var i = 0; i < 10; i++) line += '-';
 
-  console.log(line + ' [' + title + '] ' + line);
+  console.log('\n' + line + ' [' + title + '] ' + line);
 }
 
 var dw = new dataway.DataWay({
   protocol: 'https',
   host    : 'openway.dataflux.cn',
   port    : 443,
-  token   : null,
-  rp      : 'rp0',
+  token   : '<TOKEN>',
+  rp      : '<RP>',
   debug   : true,
-  dryRun  : true,
+  dryRun  : false,
 });
 
 var points = [
@@ -55,6 +55,7 @@ var points = [
 var keyevents = [
   {
     'title'    : 'T1',
+    'status'   : 'warning',
     'timestamp': 1577808000,
   },
   {
@@ -77,19 +78,17 @@ var keyevents = [
   },
 ];
 
-var objects = {
-  'object':[
-    {
-      '__class': 'objectClass',
-      '__name' : 'objectName',
-      '__tags' : { 'a': 'b', 'c': 'd' }
-    }, {
-      '__class': 'objectClass',
-      '__name' : 'objectName',
-      '__tags' : { 'a': 'b2', 'c': 'd2' }
-    }
-  ]
-}
+var objects = [
+  {
+    '__class'  : 'objectClass_1',
+    '__name'   : 'objectName_1',
+    '__content': 'objectContent_1',
+  }, {
+    '__class'  : 'objectClass_2',
+    '__name'   : 'objectName_2',
+    '__content': 'objectContent_2',
+  }
+];
 
 printSep('DataWay ping');
 dw.get({path: '/ping'}, function() {

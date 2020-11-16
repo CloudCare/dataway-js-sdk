@@ -1619,7 +1619,7 @@
     return v;
   }
   function _jsonReceiver(k, v) {
-    if ('object' === typeof v && v.$class === 'IntVal') {
+    if (null !== v && 'object' === typeof v && v.$class === 'IntVal') {
       return asInt(v.$value);
     }
     return v;
@@ -1627,6 +1627,31 @@
 
   function jsonCopy(j) {
     return JSON.parse(JSON.stringify(j, _jsonReplacer), _jsonReceiver);
+  }
+
+  var COLORS = {
+    'black'  : [30, 39],
+    'red'    : [31, 39],
+    'green'  : [32, 39],
+    'yellow' : [33, 39],
+    'blue'   : [34, 39],
+    'magenta': [35, 39],
+    'cyan'   : [36, 39],
+    'white'  : [37, 39],
+    'gray'   : [90, 39],
+    'grey'   : [90, 39],
+  }
+
+  function colored(s, name) {
+    if (name in COLORS) {
+        var left  = '\x1b[' + COLORS[name][0] + 'm';
+        var right = '\x1b[' + COLORS[name][1] + 'm';
+
+        return left + s + right;
+
+    } else {
+      throw new Error(strf("Color '{0}' not supported.", name));
+    }
   }
 
   function DataWay(opt) {
@@ -1925,8 +1950,14 @@
           }
 
           if (self.debug) {
-            console.log(strf('\n[Response Status Code] {0}', ret.statusCode));
-            console.log(strf('[Response Body] {0}', JSON.stringify(ret.respData)));
+            var output = strf('\n[Response Status Code] {0}\n[Response Body] {1}', ret.statusCode, JSON.stringify(ret.respData || '') || '<EMPTY>');
+
+            var color = 'green';
+            if (ret.statusCode >= 400) {
+              color = 'red';
+            }
+
+            console.log(colored(output, color));
           }
 
           if ('function' === typeof callback) return callback(null, ret);
