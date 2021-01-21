@@ -52,69 +52,11 @@ var points = [
   },
 ];
 
-var keyevents = [
-  {
-    'title'    : 'T1',
-    'status'   : 'warning',
-    'timestamp': 1577808000,
-  },
-  {
-    'title'        : 'T2',
-    'eventId'      : 'event-001',
-    'source'       : 'SRC1',
-    'status'       : 'info',
-    'ruleId'       : 'rule-001',
-    'ruleName'     : 'R1',
-    'type'         : 'TYPE-1',
-    'alertItemTags': {'AT1': 'X', 'AT2': 'Y'},
-    'actionType'   : 'A1',
-    'content'      : 'C1',
-    'suggestion'   : 'SUG-1',
-    'duration'     : 10,
-    'dimensions'   : ['D-1', '维度2', '维度3'],
-    'tags'         : {'T1': 'X', 'T2': 'Y'},
-    'fields'       : {'F1': 'A', 'F2': 'B'},
-    'timestamp'    : 1577808001,
-  },
-];
-
-var objects = [
-  {
-    '__class'  : 'objectClass_1',
-    '__name'   : 'objectName_1',
-    '__content': 'objectContent_1',
-  }, {
-    '__class'  : 'objectClass_2',
-    '__name'   : 'objectName_2',
-    '__content': 'objectContent_2',
-  }
-];
-
 printSep('DataWay ping');
 dw.get({path: '/ping'}, function() {
 
   printSep('DataWay post line protocol');
-  dw.postLineProtocol(points, {withRP: true}, function() {
-
-    printSep('DataWay post json');
-    dw.postJSON(objects, {path: '/v1/write/object'}, function() {
-
-      printSep('DataWay write metric');
-      dw.writeMetric(points[0], function() {
-
-        printSep('DataWay write metrics');
-        dw.writeMetrics(points, function() {
-
-          printSep('DataWay write keyevent');
-          dw.writeKeyevent(keyevents[0], function() {
-
-            printSep('DataWay write keyevents');
-            dw.writeKeyevents(keyevents, function() {
-
-            });
-          });
-        });
-      });
-    });
+  dw.postLineProtocol(points, {withRP: true, precision: "ms"}, function() {
+    // End
   });
 });

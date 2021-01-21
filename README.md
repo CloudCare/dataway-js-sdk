@@ -48,7 +48,7 @@ Javascript 版 DataFlux DataWay SDK。
 var dataway = require('./dataway');
 
 var dw = new dataway.DataWay({
-  url: 'http://localhost:9528/v1/write/metrics?token=xxxxxx',
+  url: 'http://localhost:9528/v1/write/metric?token=xxxxxx',
 });
 
 // 写入指标数据
@@ -82,22 +82,22 @@ dw.writeMetrics([
 
 DataWay 类
 
-|    `options`参数字段    |        类型       | 是否必须 |        默认值         |                                      说明                                     |
-|-------------------------|-------------------|----------|-----------------------|-------------------------------------------------------------------------------|
-| `url`                   | `String`          | 可选     | `null`                | DataWay 完整地址，如：`"http://localhost:9528/v1/write/metrics?token=xxxxxx"` |
-| `host`                  | `String`          | 可选     | `"localhost"`         | DataWay 主机地址                                                              |
-| `port`                  | `Integer`         | 可选     | `9528`                | DataWay 主机端口                                                              |
-| `protocol`              | `String`          | 可选     | `"http"`              | DataWay 访问协议。`"http"`/`"https"`                                          |
-| `path`                  | `String`          | 可选     | `"/v1/write/metrics"` | DataWay 数据上报路径                                                          |
-| `token`                 | `String`          | 可选     | `null`                | DataFlux 工作空间上报Token。只有OpenWay和内部DataWay需要填写                  |
-| `rp`                    | `String`          | 可选     | `null`                | 写入目标`retention policy`                                                    |
-| `accessKey`/`secretKey` | `String`/`String` | 可选     | `null`/`null`         | DataWay 认证用 AccessKey 和 SecretKey                                         |
-| `debug`                 | `Boolean`         | 可选     | `false`               | 是否打印详细调试信息                                                          |
-| `dryRun`                | `Boolean`         | 可选     | `false`               | 是否仅以演习方式运行（不实际发送HTTP请求）                                    |
+|    `options`参数字段    |        类型       | 是否必须 |        默认值        |                                     说明                                     |
+|-------------------------|-------------------|----------|----------------------|------------------------------------------------------------------------------|
+| `url`                   | `String`          | 可选     | `null`               | DataWay 完整地址，如：`"http://localhost:9528/v1/write/metric?token=xxxxxx"` |
+| `host`                  | `String`          | 可选     | `"localhost"`        | DataWay 主机地址                                                             |
+| `port`                  | `Integer`         | 可选     | `9528`               | DataWay 主机端口                                                             |
+| `protocol`              | `String`          | 可选     | `"http"`             | DataWay 访问协议。`"http"`/`"https"`                                         |
+| `path`                  | `String`          | 可选     | `"/v1/write/metric"` | DataWay 数据上报路径                                                         |
+| `token`                 | `String`          | 可选     | `null`               | DataFlux 工作空间上报Token。只有OpenWay和内部DataWay需要填写                 |
+| `rp`                    | `String`          | 可选     | `null`               | 写入目标`retention policy`                                                   |
+| `accessKey`/`secretKey` | `String`/`String` | 可选     | `null`/`null`        | DataWay 认证用 AccessKey 和 SecretKey                                        |
+| `debug`                 | `Boolean`         | 可选     | `false`              | 是否打印详细调试信息                                                         |
+| `dryRun`                | `Boolean`         | 可选     | `false`              | 是否仅以演习方式运行（不实际发送HTTP请求）                                   |
 
 以下两种初始化方式等价：
-- `DataWay({ url: "http://localhost:9528/v1/write/metrics?token=xxxxxx" })`
-- `DataWay({ host: "localhost", port: "9528", protocol: "http", path: "/v1/write/metrics", token: 'xxxxxx' })`
+- `DataWay({ url: "http://localhost:9528/v1/write/metric?token=xxxxxx" })`
+- `DataWay({ host: "localhost", port: "9528", protocol: "http", path: "/v1/write/metric", token: 'xxxxxx' })`
 
 `token`可以在`url`中作为参数出现，或者通过`token`传递。
 
@@ -152,7 +152,7 @@ routes_config:
 | `points[#]["fields"]`      | `JSON`     | 必须     |                             | 指标。键名必须为字符串，键值可以为字符串/整数/浮点数/布尔值之一 |
 | `points[#]["timestamp"]`   | `Number`   | 可选     | 当前时间                    | 时间戳，支持秒/毫秒/微秒/纳秒。SDK会判断并自动转换为纳秒        |
 | `opt`                      | `JSON`     | 可选     | `undefined`                 | 请求参数                                                        |
-| `opt.path`                 | `String`   | 可选     | `DataWay`实例化时指定的路径 | 请求路径，如：`/v1/keyevent`                                    |
+| `opt.path`                 | `String`   | 可选     | `DataWay`实例化时指定的路径 | 请求路径，如：`/v1/write/keyevent`                              |
 | `opt.query`                | `JSON`     | 可选     | `undefined`                 | 请求Query参数                                                   |
 | `opt.headers`              | `JSON`     | 可选     | `undefined`                 | 请求Headers参数                                                 |
 | `opt.withRP`               | `Boolean`  | 可选     | `false`                     | 是否自动附带`rp`参数                                            |
