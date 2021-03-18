@@ -1988,7 +1988,12 @@
 
     opt.method  = 'GET';
     opt.path    = opt.path    || this.path;
+    opt.query   = opt.query   || {};
     opt.headers = opt.headers || {};
+
+    if (this.token) {
+      opt.query['token'] = this.token;
+    }
 
     var _authHeaders = this._prepareAuthHeaders(opt);
     Object.assign(opt.headers, _authHeaders);
