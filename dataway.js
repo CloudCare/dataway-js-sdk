@@ -2004,7 +2004,7 @@
   DataWay.prototype._doPOST = function(opt, callback) {
     opt = opt || {};
 
-    opt.method      = 'POST';
+    opt.method      = opt.method      || 'POST';
     opt.contentType = opt.contentType || 'text/plain';
     opt.path        = opt.path        || this.path;
     opt.query       = opt.query       || {};
