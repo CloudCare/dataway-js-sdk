@@ -175,6 +175,7 @@ routes_config:
 | `jsonObj`     | `JSON`     | 必须     |             | JSON数据                      |
 | `opt`         | `JSON`     | 必须     |             | 请求参数                      |
 | `opt.path`    | `String`   | 必须     |             | 请求路径，如：`/v1/object`    |
+| `opt.method`  | `String`   | 可选     | `"POST"`    | 请求方法，如：`"PUT"`         |
 | `opt.query`   | `JSON`     | 可选     | `undefined` | 请求Query参数                 |
 | `opt.headers` | `JSON`     | 可选     | `undefined` | 请求Headers参数               |
 | `opt.withRP`  | `Boolean`  | 可选     | `false`     | 是否自动附带`rp`参数          |
